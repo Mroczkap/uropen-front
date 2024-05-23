@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import useLogout from "../../hooks/useLogout";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
+import logour from "../../assets/uropen2.jpg"
 
 export default function Navbar() {
   const [isNavExpanded, setIsNavExpanded] = useState(false);
@@ -28,13 +29,15 @@ export default function Navbar() {
   };
   return (
     <nav className="navigation">
-      <div className="logo">
+      <div className="logo-container">
         {isLoggedIn ? (
           <button onClick={signOut}>Wyloguj</button>
         ) : (
           <button onClick={signIn}>Zaloguj</button>
         )}
+        <img src={logour} alt="Logo" className="logo-image" />
       </div>
+      
       <button
         className="hamburger"
         onClick={() => {
