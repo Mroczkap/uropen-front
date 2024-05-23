@@ -1,0 +1,83 @@
+.App {
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  
+}
+
+.App-logo {
+  height: 40vmin;
+  pointer-events: none;
+}
+
+.App-header {
+  background-color: #282c34;
+  min-height: 100vh;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(2vmin);
+  color: white;
+}
+
+.App-link {
+  color: #61dafb;
+}
+
+
+.header-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap; /* Allows wrapping on smaller screens */
+  margin: 20px 0;
+}
+
+
+.header-container .logo1 {
+  width: 115px; /* Adjust the width as needed */
+  height: auto;
+  margin: 0 10px;
+}
+.header-container .logo2 {
+  width: 320px; /* Adjust the width as needed */
+  height: auto;
+  margin: 0 10px;
+}
+
+.header-container .logo3 {
+  width: 150px; /* Adjust the width as needed */
+  height: auto;
+  margin: 0 10px;
+}
+
+.header-container .header-text {
+  font-size: 24px; /* Adjust the font size as needed */
+  font-weight: bold;
+  margin: 20px;
+  margin-top: 10px;
+  margin-bottom: 15px
+}
+
+@media (max-width: 768px) {
+  
+
+  .header-container .logo1
+  {
+    width: 100px; /* Adjust as needed for smaller screens */
+    margin: 5px 0;
+  }
+  .header-container .logo2
+  {
+    width: 220px; /* Adjust as needed for smaller screens */
+    margin: 5px 0;
+  }
+  .header-container .logo3 {
+    width: 120px; /* Adjust as needed for smaller screens */
+    margin: 5px 0;
+  }
+
+  .header-container .header-text {
+    font-size: 18px; /* Adjust font size for smaller screens */
+  }
+}
+

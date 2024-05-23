@@ -1,0 +1,49 @@
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  justify-content: center;
+  align-items: center;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.container-top {
+  display: flex;
+  justify-content: center; /* Horizontally center the elements */
+  align-items: center;
+  width: 100%;
+  margin-top: 50px;
+  margin-bottom: 20px;
+  
+
+   /* Vertically center the elements */
+  /* Add any additional styles for the container as needed */
+  /* For example, you might set 
+  a specific height or width */
+}
+
+.container {
+  display: flex;
+  justify-content: center; /* Horizontally center the elements */
+  align-items: center;
+  width: 100%;
+  margin-top: 20px;
+  flex-wrap: wrap; 
+  margin-bottom: 10px;
+}
+input.check {
+  width : 20px;
+  height : 20px; 
+}
+a {
+  color: inherit; /* Inherit the color from parent */
+  text-decoration: none; /* Remove underline */
+}

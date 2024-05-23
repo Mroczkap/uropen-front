@@ -1,0 +1,155 @@
+/* Styling for the navigation bar */
+.navigation {
+    height: 60px;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between; /* Distributes items across the width */
+    position: relative;
+    padding: 0.5rem 0rem;
+    background-color: #293241;
+    color: #fff;
+    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
+    z-index: 2; /* Ensure the navigation is above the content */
+  }
+  
+  
+  /* Styling for navigation items */
+  .navigation-menu {
+    width: 60%;
+    text-align: center;
+    align-items: center; /* Center vertically */
+    justify-content: center; /* Center horizontally */
+     /* Adjust padding as needed */
+  }
+
+  .navigation-menu ul {
+   
+    display: flex;
+    padding: 0;
+     text-align: center;
+    align-items: center; /* Center vertically */
+    justify-content: center;
+  }
+  
+  .navigation-menu li {
+    
+    list-style-type: none;
+    margin: 0 1rem;
+    text-align: center;
+    align-items: center; /* Center vertically */
+    justify-content: center;
+  }
+  
+  .navigation-menu li a {
+    color: #f0f4ef;
+    text-decoration: none;
+    display: flex;
+    width: 100%;
+    font-size: 1.2rem;
+    transition: color 0.3s ease;
+    text-align: center;
+    align-items: center; /* Center vertically */
+    justify-content: center;
+  }
+  
+  .navigation-menu li a:hover {
+    color: #4d4dff;
+  }
+  
+  /* Styling for the hamburger button */
+  .hamburger {
+    border: 0;
+    height: 40px;
+    width: 40px;
+    padding: 0.5rem;
+    border-radius: 50%;
+    background-color: transparent;
+    color: #fff;
+    transition: background-color 0.2s ease-in-out, transform 0.2s ease-in-out;
+    position: absolute;
+    top: 50%;
+    right: 25px;
+    transform: translateY(-50%);
+    display: none;
+    z-index: 3; /* Ensure the hamburger is above the content */
+  }
+  
+  .hamburger:hover {
+    background-color: #4d4dff;
+    transform: translateY(-50%) scale(1.1);
+  }
+
+  .logo {
+    text-decoration: none;
+    color: white;
+    font-size: 1.5rem;
+    display: flex;
+    align-items: center;
+    margin: 0; /* Remove margin to move logo to the left edge */
+    padding: 0.5rem 1rem; /* Add padding for spacing */
+    width: 20%
+  }
+  
+  .logo img {
+    width: 40px; /* Adjust the width as needed */
+    height: auto; /* Maintain aspect ratio */
+    margin-right: 0.5rem;
+  }
+  
+  
+  /* Media queries for responsive design */
+  @media screen and (max-width: 768px) {
+    .hamburger {
+      display: block;
+    }
+  
+    .navigation-menu ul {
+      display: none;
+      position: absolute;
+      top: 60px;
+      left: 0;
+      flex-direction: column;
+      width: 100%;
+      background-color: #6f80a0;
+      border-top: 1px solid #ccc;
+      z-index: 1; /* Place the expanded menu above the navigation bar */
+    }
+
+  .navigation-menu li {
+    text-align: center;
+    margin: 0;
+  }
+
+  .navigation-menu li a {
+    color: #fff;
+    width: 100%;
+    padding: 1.5rem 0;
+    transition: color 0.3s ease;
+  }
+
+  .navigation-menu li a:hover {
+    color: #4d4dff;
+  }
+
+  .navigation-menu li:hover {
+    background-color: #e0e0e0;
+  }
+
+  .navigation-menu.expanded ul {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .logo {
+    margin-left: 0; /* Center the logo in mobile view */
+    justify-content: center;
+    width: 300px
+   
+  }
+
+  .logo img {
+    margin-right: 0; /* Remove margin in mobile view */
+  }
+}
