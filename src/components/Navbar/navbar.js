@@ -4,7 +4,7 @@ import { Link } from "react-router-dom";
 import useLogout from "../../hooks/useLogout";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import logour from "../../assets/uropen2.jpg"
+import logour from "../../assets/uropen2.jpg";
 
 export default function Navbar() {
   const [isNavExpanded, setIsNavExpanded] = useState(false);
@@ -27,6 +27,11 @@ export default function Navbar() {
   const signIn = async () => {
     navigate("/login");
   };
+
+  const closeMenu = () => {
+    setIsNavExpanded(false);
+  };
+
   return (
     <nav className="navigation">
       <div className="logo-container">
@@ -78,29 +83,28 @@ export default function Navbar() {
       >
         <ul>
           <li>
-            <Link to="/contact">Zawody</Link>
+            <Link to="/contact" onClick={closeMenu}>Zawody</Link>
           </li>
           <li>
-            <Link to="/blogs">Zawodnicy</Link>
+            <Link to="/blogs" onClick={closeMenu}>Zawodnicy</Link>
           </li>
           <li>
-            <Link to="/sign-up">Nowe zawody</Link>
+            <Link to="/sign-up" onClick={closeMenu}>Nowe zawody</Link>
           </li>
           <li>
-            <Link to="/match">Mecze</Link>
-          </li>
-
-          <li>
-            <Link to="/about">Rankingi</Link>
+            <Link to="/match" onClick={closeMenu}>Mecze</Link>
           </li>
           <li>
-            <Link to="/compare">Porównaj</Link>
+            <Link to="/about" onClick={closeMenu}>Rankingi</Link>
           </li>
           <li>
-            <Link to="/cykl">Cykl</Link>
+            <Link to="/compare" onClick={closeMenu}>Porównaj</Link>
           </li>
           <li>
-            <Link to="/regulamin">Regulamin</Link>
+            <Link to="/cykl" onClick={closeMenu}>Cykl</Link>
+          </li>
+          <li>
+            <Link to="/regulamin" onClick={closeMenu}>Regulamin</Link>
           </li>
         </ul>
       </div>
