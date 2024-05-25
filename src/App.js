@@ -14,9 +14,8 @@ import Login from "./pages/login";
 import Unauthorized from "./pages/unauthorized";
 import RequireAuth from "./components/RequireAuth";
 import PersistLogin from "./components/PersistLogin";
-import Logo1 from './assets/logo1.png'
+import Logo4 from './assets/logo4.jpg'
 import Logo2 from './assets/logo2.jpg'
-import Logo3 from './assets/logo3.jpg'
 
 import ToastNotification from "./components/toast/toastNotification";
 
@@ -56,9 +55,8 @@ function App() {
         </Route>
       </Routes>
       <div className="header-container">
-      <img src={Logo1} alt="Logo1" className="logo1"/>
-      <img src={Logo3} alt="Logo1" className="logo3"/>
-      
+      <img src={Logo4} alt="Logo4" className="logo1"/>
+            
         <div className="header-text">Zadanie finansowane ze środków <br / >Gminy Miasto Rzeszów</div>
         <img src={Logo2} alt="Logo2" className="logo2"/>
       </div>
