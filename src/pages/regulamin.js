@@ -1,6 +1,6 @@
 import React from "react";
 import Box from "@mui/material/Box";
-import { styled } from "@mui/system";
+import { styled } from "@mui/material/styles";
 import reg1 from '../assets/reg1.jpg'
 import reg2 from '../assets/reg2.jpg'
 import reg3 from '../assets/reg3.jpg'
