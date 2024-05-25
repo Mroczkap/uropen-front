@@ -27,6 +27,9 @@ const Navbar = () => {
 					<NavLink to="/cykl">
 						Cykl
 					</NavLink>
+					<NavLink to="/regulamin">
+						Regulamin
+					</NavLink>
 				</NavMenu>
 			</Nav>
 		</>

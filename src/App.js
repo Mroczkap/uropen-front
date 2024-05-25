@@ -4,6 +4,7 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages";
 import About from "./pages/about";
 import Cykl from "./pages/cykl";
+import Regulamin from "./pages/regulamin";
 import Blogs from "./pages/blogs";
 import SignUp from "./pages/signup";
 import Contact from "./pages/contact";
@@ -40,6 +41,7 @@ function App() {
         <Route path="cykl" element={<Cykl />} />
         <Route path="compare" element={<Compare />} />
         <Route path="contact" element={<Contact />} />
+        <Route path="regulamin" element={<Regulamin />} />
 
         <Route element={<PersistLogin />}>
           <Route element={<RequireAuth allowedRoles={[ROLES.User]} />}>

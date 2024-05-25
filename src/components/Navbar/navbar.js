@@ -99,6 +99,9 @@ export default function Navbar() {
           <li>
             <Link to="/cykl">Cykl</Link>
           </li>
+          <li>
+            <Link to="/regulamin">Regulamin</Link>
+          </li>
         </ul>
       </div>
       <div className="logo"></div>
