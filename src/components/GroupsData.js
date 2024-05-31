@@ -19,16 +19,23 @@ import Grid from "@mui/material/Grid";
 import { styled } from "@mui/material/styles";
 import TextField from "@mui/material/TextField";
 import Switch from "@mui/material/Switch";
+import FormControlLabel from "@mui/material/FormControlLabel";
 
 const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLoggedIn }) => {
   const [value, setValue] = useState(0);
+  const [selectedPlayerName, seTSelectedPlayerName] = useState("");
+  const [showUnfinishedOnly, setShowUnfinishedOnly] = useState(false);
 
   const handleChange = (event, newValue) => {
     setValue(newValue);
   };
-  const [selectedPlayerName, seTSelectedPlayerName] = useState("");
+
   const handleFilterChange = (e) => {
     seTSelectedPlayerName(e.target.value);
+  };
+
+  const handleToggleChange = (e) => {
+    setShowUnfinishedOnly(e.target.checked);
   };
 
   const Item = styled(Paper)({
@@ -156,7 +163,14 @@ const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLogg
 
             // Check if either player1name or player2name matches
             return player1Match || player2Match;
+          }).filter((item) => {
+            // Filter based on the toggle state
+            if (showUnfinishedOnly) {
+              return item.player1sets !== 3 && item.player2sets !== 3;
+            }
+            return true;
           });
+
           return (
             <CustomTabPanel key={grupid - 1} value={value} index={grupid - 1}>
               <Box
@@ -246,6 +260,16 @@ const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLogg
                     />
                   ) : null}
                 </Box>
+                <FormControlLabel
+                  control={
+                    <Switch
+                      checked={showUnfinishedOnly}
+                      onChange={handleToggleChange}
+                      name="showUnfinishedOnly"
+                    />
+                  }
+                  label="Pokaż tylko nierozegrane mecze"
+                />
                 <Box
                   sx={{
                     display: "flex",
@@ -330,11 +354,13 @@ const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLogg
                                       <TableCell
                                         align="right"
                                         sx={{ borderColor: borderColor }}
-                                      > {  isLoggedIn ? 
-                                        <Switch
-                                          checked={checked}
-                                          onChange={handleSwitchClick}
-                                        /> : null }
+                                      > 
+                                        {isLoggedIn ? (
+                                          <Switch
+                                            checked={checked}
+                                            onChange={handleSwitchClick}
+                                          />
+                                        ) : null}
                                       </TableCell>
                                     </TableRow>
                                   </TableHead>
@@ -365,19 +391,19 @@ const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLogg
                                           textAlign: "center",
                                         }}
                                       >
-                                        {" "}
-                                        {  isLoggedIn ?  <MatchModal
-                                          onRefresh={onRefresh}
-                                          meczid={mecz._id}
-                                          player1={mecz.player1name}
-                                          player2={mecz.player2name}
-                                          player1id={mecz.player1id}
-                                          player2id={mecz.player2id}
-                                          groupid={_id}
-                                          player1sets={mecz.player1sets}
-                                          player2sets={mecz.player2sets}
-                                        />: null}
-                                       
+                                        {isLoggedIn ? (
+                                          <MatchModal
+                                            onRefresh={onRefresh}
+                                            meczid={mecz._id}
+                                            player1={mecz.player1name}
+                                            player2={mecz.player2name}
+                                            player1id={mecz.player1id}
+                                            player2id={mecz.player2id}
+                                            groupid={_id}
+                                            player1sets={mecz.player1sets}
+                                            player2sets={mecz.player2sets}
+                                          />
+                                        ) : null}
                                       </TableCell>
                                     </TableRow>
 
