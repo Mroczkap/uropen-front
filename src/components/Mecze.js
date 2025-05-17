@@ -121,13 +121,13 @@ const Mecze = ({ array, isLoggedIn, onRefresh, runda, idzawodow }) => {
     return nazwa;
   };
 
-  const MatchTable = ({ matches, onToggleProgress, runda, idzawodow, onRefresh }) => {
+  const MatchTable = ({ matches, onToggleProgress, runda, idzawodow, onRefresh, array }) => {
     const completedBgColor = useColorModeValue("green.100", "green.700");
     const inProgressBgColor = useColorModeValue("red.100", "red.700");
     const defaultBgColor = useColorModeValue("white", "gray.800");
 
     useEffect(() => {
-      matches.forEach((match) => {
+      array.forEach((match) => {
         if (
           match.player1name === "Wolny Los" &&
           match.player2name === "Wolny Los" &&
@@ -336,6 +336,7 @@ const Mecze = ({ array, isLoggedIn, onRefresh, runda, idzawodow }) => {
               onRefresh={onRefresh}
               runda={runda}
               idzawodow={idzawodow}
+              array={array}
             />
           </Box>
           <Flex
