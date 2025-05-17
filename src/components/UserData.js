@@ -1,172 +1,219 @@
-import "react-toastify/dist/ReactToastify.css";
-import { useState } from "react";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
-import Box from "@mui/material/Box";
-import TextField from "@mui/material/TextField";
-import { Typography } from "@mui/material";
+import React, { useState } from "react";
+import {
+  Box,
+  Input,
+  VStack,
+  HStack,
+  Text,
+  Container,
+  useColorModeValue,
+  InputGroup,
+  InputLeftElement,
+  Button,
+  Flex,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  IconButton,
+  Badge,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  Checkbox,
+  ChakraProvider,
+} from "@chakra-ui/react";
+import { SearchIcon, AddIcon, EditIcon, DeleteIcon, ViewOffIcon } from "@chakra-ui/icons";
 import AddModal from "../components/addModal/AddModal";
-import Grid from "@mui/material/Grid";
-import { styled } from "@mui/material/styles";
 import RemoveModal from "./removeModal/RemoveModal";
 
-import React from "react";
+const UserTableRow = ({ user, onRefresh, visibleColumns, index }) => {
+  const { _id, ranking, nazwisko, imie, plec, wiek, okladziny } = user;
+
+  return (
+    <Tr _hover={{ bg: useColorModeValue("gray.50", "gray.700") }}>
+      <Td textAlign="center">{index}</Td>
+      <Td fontWeight="medium">{nazwisko} {imie}</Td>
+      {visibleColumns.ranking && <Td textAlign="center"><Badge colorScheme={ranking >= 500 ? "green" : "orange"}>{ranking}</Badge></Td>}
+      {visibleColumns.plec && <Td textAlign="center">{plec}</Td>}
+      {visibleColumns.wiek && <Td textAlign="center">{wiek}</Td>}
+      {visibleColumns.okladziny && <Td textAlign="center">{okladziny}</Td>}
+      <Td textAlign="center">
+        <HStack spacing={2} justifyContent="center">
+          <AddModal edit={true} user={user} onRefresh={onRefresh}>
+            <IconButton
+              icon={<EditIcon />}
+              size="sm"
+              variant="ghost"
+              aria-label="Edit"
+            />
+          </AddModal>
+          <RemoveModal
+            onRefresh={onRefresh}
+            id={_id}
+            imie={imie}
+            nazwisko={nazwisko}
+          >
+            <IconButton
+              icon={<DeleteIcon />}
+              size="sm"
+              variant="ghost"
+              colorScheme="red"
+              aria-label="Delete"
+              
+              
+              
+            />
+          </RemoveModal>
+        </HStack>
+      </Td>
+    </Tr>
+  );
+};
 
 const UserData = ({ users, onRefresh }) => {
   const [filter, setFilter] = useState("");
-
-  const Item = styled(Paper)({
-    flex: 1, // Make the Item component flexible
-    display: "flex",
-    flexDirection: "column",
-    justifyContent: "center",
-    alignItems: "center",
-    textAlign: "center",
-    minHeight: 90, // Use minHeight instead of height
-    minWidth: 300,
-    maxWidth: "100%", // Set maxWidth to allow flexible width
+  const [sortField, setSortField] = useState("ranking");
+const [sortDirection, setSortDirection] = useState("desc");;
+  const [visibleColumns, setVisibleColumns] = useState({
+    ranking: true,
+    plec: true,
+    wiek: false,
+    okladziny: false,
   });
 
-  const filteredData = users.filter((item) => {
-    return item.nazwisko.toLowerCase().includes(filter.toLowerCase());
+
+  const filteredData = users.filter((item) =>
+    item.nazwisko.toLowerCase().includes(filter.toLowerCase())
+  );
+
+  const sortedData = [...filteredData].sort((a, b) => {
+    if (sortField === "ranking") {
+      return sortDirection === "desc" ? b[sortField] - a[sortField] : a[sortField] - b[sortField];
+    } else {
+      if (a[sortField] < b[sortField]) return sortDirection === "asc" ? -1 : 1;
+      if (a[sortField] > b[sortField]) return sortDirection === "asc" ? 1 : -1;
+      return 0;
+    }
   });
 
-  const handleFilterChange = (e) => {
-    setFilter(e.target.value);
+  const bgColor = useColorModeValue("gray.50", "gray.900");
+  const tableBgColor = useColorModeValue("white", "gray.800");
+
+  const handleSort = (field) => {
+    if (field === sortField) {
+      setSortDirection(sortDirection === "asc" ? "desc" : "asc");
+    } else {
+      setSortField(field);
+      setSortDirection("asc");
+    }
   };
-  let lp = 0;
+
+  const toggleColumn = (column) => {
+    setVisibleColumns(prev => ({ ...prev, [column]: !prev[column] }));
+  };
+
   return (
-    <>
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        flexDirection="column"
-        marginTop={2}
-        sx={{ width: "100%" }}
-      >
-        <Grid
-          container
-          spacing={2}
-          alignItems="center"
-          style={{ justifyContent: "center" }}
-        >
-          <Grid item xs="auto">
-            <Item
-              sx={{
-                boxShadow: 3,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-              }}
-            >
-              {" "}
-              <Typography variant="button">Filtruj po nazwisku: </Typography>
-              <TextField
-                size="small"
-                id="outlined-basic"
-                label="nazwisko..."
-                variant="outlined"
-                value={filter}
-                autoComplete="off"
-                onChange={handleFilterChange}
-                autoFocus={true}
-              />
-            </Item>
-          </Grid>
-          <Grid item xs="auto">
-            <Item sx={{ boxShadow: 3 }}>
-              {" "}
-              <AddModal onRefresh={onRefresh} />
-            </Item>
-          </Grid>
-        </Grid>
-      </Box>
+    <ChakraProvider>
+      <Box bg={bgColor} minH="100vh" py={8}>
+        <Container maxW="1100px">
+          <VStack spacing={8} align="stretch">
+            <Flex justifyContent="space-between" alignItems="center" flexWrap="wrap" gap={4}>
+              <InputGroup maxW="400px">
+                <InputLeftElement pointerEvents="none">
+                  <SearchIcon color="gray.300" />
+                </InputLeftElement>
+                <Input
+                  placeholder="Szukaj po nazwisku..."
+                  value={filter}
+                  onChange={(e) => setFilter(e.target.value)}
+                  bg={useColorModeValue("white", "gray.800")}
+                />
+              </InputGroup>
+              <HStack>
+                <Menu closeOnSelect={false}>
+                  <MenuButton as={Button} rightIcon={<ViewOffIcon />}>
+                    Kolumny
+                  </MenuButton>
+                  <MenuList minWidth="240px">
+                    <MenuItem onClick={() => toggleColumn('ranking')}>
+                      <Checkbox isChecked={visibleColumns.ranking} mr={2} />
+                      Ranking
+                    </MenuItem>
+                    <MenuItem onClick={() => toggleColumn('plec')}>
+                      <Checkbox isChecked={visibleColumns.plec} mr={2} />
+                      Płeć
+                    </MenuItem>
+                    <MenuItem onClick={() => toggleColumn('wiek')}>
+                      <Checkbox isChecked={visibleColumns.wiek} mr={2} />
+                      Wiek
+                    </MenuItem>
+                    <MenuItem onClick={() => toggleColumn('okladziny')}>
+                      <Checkbox isChecked={visibleColumns.okladziny} mr={2} />
+                      Okładziny
+                    </MenuItem>
+                  </MenuList>
+                </Menu>
+                <AddModal onRefresh={onRefresh}>
+                  <Button leftIcon={<AddIcon />} colorScheme="blue">
+                    Dodaj zawodnika
+                  </Button>
+                </AddModal>
+              </HStack>
+            </Flex>
 
-      <Box
-        display="flex"
-        justifyContent="center"
-        alignItems="center"
-        flexDirection="column"
-        marginTop={2}
-        sx={{ width: "100%" }}
-      >
-        <TableContainer
-          component={Paper}
-          sx={{ maxWidth: 1000, boxShadow: 10, minWidth: 350 }}
-        >
-          <Table sx={{ minWidth: 200 }} aria-label="simple table">
-            <TableHead>
-              <TableRow>
-                <TableCell>L.p.</TableCell>
-                <TableCell>Ranking</TableCell>
-                <TableCell>Nazwisko</TableCell>
-                <TableCell>Imię</TableCell>
-                <TableCell>Płeć</TableCell>
-                <TableCell>Wiek</TableCell>
-                <TableCell>Okładziny</TableCell>
-                <TableCell></TableCell>
-                <TableCell></TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {filteredData.map((curUser) => {
-                const { _id, ranking, nazwisko, imie, plec, wiek, okladziny } =
-                  curUser;
-                lp++;
-
-                return (
-                  <TableRow
-                    key={`${_id}`}
-                    sx={{ "&:last-child td, &:last-child th": { border: 0 } }}
-                  >
-                    <TableCell component="th" scope="row">
-                      {lp}
-                    </TableCell>
-                    <TableCell>{ranking}</TableCell>
-                    <TableCell>{nazwisko}</TableCell>
-                    <TableCell>{imie}</TableCell>
-                    <TableCell>{plec}</TableCell>
-                    <TableCell>{wiek}</TableCell>
-                    <TableCell>{okladziny}</TableCell>
-                    <TableCell>
-                      {" "}
-                      {/* <Button
-                        id={`${_id}`}
-                        startIcon={<DeleteIcon />}
-                        variant="outlined"
-                        onClick={handleClick}
-                      >
-                        Usuń
-                      </Button> */}
-                      <RemoveModal
-                        onRefresh={onRefresh}
-                        id={`${_id}`}
-                        imie={`${imie}`}
-                        nazwisko={`${nazwisko}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {" "}
-                      <AddModal
-                        edit={true}
-                        user={curUser}
-                        onRefresh={onRefresh}
-                      />
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
-            </TableBody>
-          </Table>
-        </TableContainer>
+            <Box overflowX="auto">
+              <Table variant="simple" bg={tableBgColor} borderRadius="md" boxShadow="sm" maxWidth="1100px" margin="0 auto">
+                <Thead>
+                  <Tr>
+                    <Th textAlign="center">Lp.</Th>
+                    <Th cursor="pointer" onClick={() => handleSort("nazwisko")}>
+                      Zawodnik {sortField === "nazwisko" && (sortDirection === "asc" ? "↑" : "↓")}
+                    </Th>
+                    {visibleColumns.ranking && (
+                      <Th textAlign="center" cursor="pointer" onClick={() => handleSort("ranking")}>
+                        Ranking {sortField === "ranking" && (sortDirection === "asc" ? "↑" : "↓")}
+                      </Th>
+                    )}
+                    {visibleColumns.plec && (
+                      <Th textAlign="center" cursor="pointer" onClick={() => handleSort("plec")}>
+                        Płeć {sortField === "plec" && (sortDirection === "asc" ? "↑" : "↓")}
+                      </Th>
+                    )}
+                    {visibleColumns.wiek && (
+                      <Th textAlign="center" cursor="pointer" onClick={() => handleSort("wiek")}>
+                        Wiek {sortField === "wiek" && (sortDirection === "asc" ? "↑" : "↓")}
+                      </Th>
+                    )}
+                    {visibleColumns.okladziny && (
+                      <Th textAlign="center" cursor="pointer" onClick={() => handleSort("okladziny")}>
+                        Okładziny {sortField === "okladziny" && (sortDirection === "asc" ? "↑" : "↓")}
+                      </Th>
+                    )}
+                    <Th textAlign="center">Akcje</Th>
+                  </Tr>
+                </Thead>
+                <Tbody>
+                  {sortedData.map((user, index) => (
+                    <UserTableRow 
+                      key={user._id} 
+                      user={user} 
+                      onRefresh={onRefresh} 
+                      visibleColumns={visibleColumns} 
+                      index={index + 1}
+                    />
+                  ))}
+                </Tbody>
+              </Table>
+            </Box>
+          </VStack>
+        </Container>
       </Box>
-    </>
+    </ChakraProvider>
   );
 };
+
 export default UserData;

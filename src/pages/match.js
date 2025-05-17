@@ -1,62 +1,61 @@
 import React, { useState, useEffect } from "react";
-import { DemoContainer } from "@mui/x-date-pickers/internals/demo";
-import { AdapterDayjs } from "@mui/x-date-pickers/AdapterDayjs";
-import { LocalizationProvider } from "@mui/x-date-pickers/LocalizationProvider";
-import { DatePicker } from "@mui/x-date-pickers/DatePicker";
+import {
+  Box,
+  Container,
+  VStack,
+  Text,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  TableContainer,
+  Input,
+  Grid,
+  useColorModeValue,
+  Select,
+  HStack,
+} from "@chakra-ui/react";
+import { ChakraProvider } from "@chakra-ui/react";
 import axios from "../api/axios";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Box from "@mui/material/Box";
-import Grid from "@mui/material/Grid";
-import Paper from "@mui/material/Paper";
 import MatchModal from "../components/modal/MatchModal";
-import { styled } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
 
 const Match = () => {
-  const [selectedDate, setSelectedDate] = useState("");
+  const [selectedDate, setSelectedDate] = useState(new Date());
   const [meczes, setMeczes] = useState([]);
+  const [selectedPlayerName, setSelectedPlayerName] = useState("");
 
-  const [selectedPlayerName, seTSelectedPlayerName] = useState("");
   const handleFilterChange = (e) => {
-    seTSelectedPlayerName(e.target.value);
+    setSelectedPlayerName(e.target.value);
   };
 
-  const Item = styled(Paper)({
-    textAlign: "center",
-    minWidth: 350,
-    width: "100%",
-    maxWidth: 400,
-  });
-
   const filteredData = meczes.filter((item) => {
-    const player1Match = item.player1name
+    const player1Match = item?.player1name
       .toLowerCase()
       .includes(selectedPlayerName.toLowerCase());
-    const player2Match = item.player2name
+    const player2Match = item?.player2name
       .toLowerCase()
       .includes(selectedPlayerName.toLowerCase());
-
-    // Check if either player1name or player2name matches
     return player1Match || player2Match;
   });
 
-  const handleDateChange = (date) => {
-    setSelectedDate(date);
+  const handleDateChange = (type, value) => {
+    const newDate = new Date(selectedDate);
+    if (type === 'year') newDate.setFullYear(value);
+    if (type === 'month') newDate.setMonth(value - 1);
+    if (type === 'day') newDate.setDate(value);
+    setSelectedDate(newDate);
   };
 
   function getMatches() {
-    const day = selectedDate["$D"]; // Day (1-31)
-    const month = selectedDate["$M"] + 1; // Month (0-11) + 1 to make it (1-12)
-    const year = selectedDate["$y"]; // Year (e.g., 2023)
+    const day = selectedDate.getDate();
+    const month = selectedDate.getMonth() + 1;
+    const year = selectedDate.getFullYear();
     const dat = `${year}-${month}-${day}`;
 
     axios
-      .get(`/singleMatch?date=${dat}`, {
+      .get(`/match/getSingleMatch?date=${dat}`, {
         withCredentials: true,
       })
       .then((response) => {
@@ -66,6 +65,7 @@ const Match = () => {
         return response.data;
       })
       .then((data) => {
+        
         setMeczes(data);
       })
       .catch((err) => {
@@ -73,181 +73,114 @@ const Match = () => {
       });
   }
 
+ 
   useEffect(() => {
     getMatches();
   }, [selectedDate]);
 
-  return (
-    <>
-      <div className="container">
-        <LocalizationProvider dateAdapter={AdapterDayjs}>
-          <DemoContainer components={["DatePicker"]}>
-            <DatePicker
-              value={selectedDate}
-              onChange={handleDateChange}
-              label="Wybierz date"
-            />
-          </DemoContainer>
-        </LocalizationProvider>
-        <Box
-          display="flex"
-          justifyContent="center"
-          alignItems="center"
-          flexDirection="column"
-          p={2}
-          sx={{ width: "100%" }}
-        >
-          {" "}
-          {meczes.length > 10 ? (
-            <TextField
-              size="small"
-              id="outlined-basic"
-              label="nazwisko..."
-              variant="outlined"
-              value={selectedPlayerName}
-              autoComplete="off"
-              onChange={handleFilterChange}
-              component={Paper}
-              sx={{
-                width: "100%",
-                boxShadow: 10,
-                minWidth: 350,
-                maxWidth: 825,
-              }}
-            />
-          ) : null}
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            width: "100%",
-            minWidth: 350,
-          }}
-          p={1}
-        >
-          <Grid
-            container
-            spacing={3}
-            style={{
-              width: "100%",
-              justifyContent: "center",
-              maxWidth: 840,
-            }}
-          >
-            {filteredData.map((mecz, index) => {
-              let borderColor = null;
-              let backgroundColor = null;
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const finishedMatchBg = useColorModeValue("green.50", "green.900");
 
-              if (mecz.player1sets === 3 || mecz.player2sets === 3) {
-                backgroundColor = "#dbead5";
-                borderColor = "#80cbc4";
-              }
+  // Generate options for day, month, and year
+  const days = Array.from({ length: 31 }, (_, i) => i + 1);
+  const months = Array.from({ length: 12 }, (_, i) => i + 1);
+  const currentYear = new Date().getFullYear();
+  const years = Array.from({ length: 10 }, (_, i) => currentYear - 5 + i);
+
+  return (
+    <ChakraProvider>
+      <Container maxW="container.xl" py={5}>
+        <VStack spacing={5} align="stretch">
+          <HStack>
+            <Select
+              value={selectedDate.getDate()}
+              onChange={(e) => handleDateChange('day', parseInt(e.target.value))}
+            >
+              {days.map(day => (
+                <option key={day} value={day}>{day}</option>
+              ))}
+            </Select>
+            <Select
+              value={selectedDate.getMonth() + 1}
+              onChange={(e) => handleDateChange('month', parseInt(e.target.value))}
+            >
+              {months.map(month => (
+                <option key={month} value={month}>{month}</option>
+              ))}
+            </Select>
+            <Select
+              value={selectedDate.getFullYear()}
+              onChange={(e) => handleDateChange('year', parseInt(e.target.value))}
+            >
+              {years.map(year => (
+                <option key={year} value={year}>{year}</option>
+              ))}
+            </Select>
+          </HStack>
+
+          {meczes.length > 10 && (
+            <Input
+              placeholder="Nazwisko..."
+              value={selectedPlayerName}
+              onChange={handleFilterChange}
+            />
+          )}
+
+          <Grid templateColumns="repeat(auto-fit, minmax(300px, 1fr))" gap={6}>
+            {filteredData.map((mecz, index) => {
+              const isFinished = mecz.player1sets === 3 || mecz.player2sets === 3;
 
               return (
-                <Grid
-                  item
-                  xs="auto"
-                  key={index}
-                  style={{
-                    justifyContent: "center",
-                    width: "100%",
-                    maxWidth: 420,
-                  }}
+                <Box
+                  key={mecz._id}
+                  borderWidth={1}
+                  borderRadius="lg"
+                  overflow="hidden"
+                  bg={isFinished ? finishedMatchBg : bgColor}
+                  borderColor={borderColor}
+                  boxShadow="md"
                 >
-                  <Box
-                    display="flex"
-                    justifyContent="center"
-                    alignItems="center"
-                    flexDirection="column"
-                    sx={{ width: "100%" }}
-                  >
-                    <Item>
-                      {" "}
-                      <TableContainer component={Paper} sx={{ boxShadow: 10 }}>
-                        <Table
-                          sx={{
-                            width: "100%",
-                            backgroundColor: backgroundColor,
-                          }}
-                          aria-label="simple table"
-                        >
-                          <TableHead>
-                            <TableRow>
-                              <TableCell
-                                component="th"
-                                scope="row"
-                                colSpan="2"
-                                sx={{ borderColor: borderColor }}
-                              >
-                                Mecz {index + 1}{" "}
-                              </TableCell>
-
-                              <TableCell
-                                align="right"
-                                sx={{ borderColor: borderColor }}
-                              ></TableCell>
-                            </TableRow>
-                          </TableHead>
-                          <TableBody>
-                            <TableRow
-                              sx={{
-                                "&:last-child td, &:last-child th": {
-                                  border: 0,
-                                },
-                              }}
-                            >
-                              <TableCell sx={{ borderColor: borderColor }}>
-                                {mecz.player1name}
-                              </TableCell>
-                              <TableCell sx={{ borderColor: borderColor }}>
-                                {mecz.player1sets}
-                              </TableCell>
-                              <TableCell
-                                rowSpan={2}
-                                sx={{ border: 0 }}
-                                style={{
-                                  justifyContent: "center",
-                                  alignItems: "center",
-                                  textAlign: "center",
-                                }}
-                              >
-                                {" "}
-                                <MatchModal
-                                  onRefresh={getMatches}
-                                  meczid={mecz._id}
-                                  player1={mecz.player1name}
-                                  player2={mecz.player2name}
-                                  player1id={mecz.player1id}
-                                  player2id={mecz.player2id}
-                                  player1sets={mecz.player1sets}
-                                  player2sets={mecz.player2sets}
-                                />
-                              </TableCell>
-                            </TableRow>
-
-                            <TableRow
-                              sx={{
-                                "&:last-child td, &:last-child th": {
-                                  border: 0,
-                                },
-                              }}
-                            >
-                              <TableCell>{mecz.player2name}</TableCell>
-                              <TableCell>{mecz.player2sets}</TableCell>
-                            </TableRow>
-                          </TableBody>
-                        </Table>
-                      </TableContainer>
-                    </Item>
-                  </Box>
-                </Grid>
+                  <TableContainer>
+                    <Table variant="simple" size="sm">
+                      <Thead>
+                        <Tr>
+                          <Th colSpan={2}>Mecz {index + 1}</Th>
+                          <Th></Th>
+                        </Tr>
+                      </Thead>
+                      <Tbody>
+                        <Tr>
+                          <Td>{mecz.player1name}</Td>
+                          <Td isNumeric>{mecz.player1sets}</Td>
+                          <Td rowSpan={2}>
+                            <MatchModal
+                            toRank={true}
+                              onRefresh={getMatches}
+                              meczid={mecz._id}
+                              player1={mecz.player1name}
+                              player2={mecz.player2name}
+                              player1id={mecz.player1id}
+                              player2id={mecz.player2id}
+                              player1sets={mecz.player1sets}
+                              player2sets={mecz.player2sets}
+                            />
+                          </Td>
+                        </Tr>
+                        <Tr>
+                          <Td>{mecz.player2name}</Td>
+                          <Td isNumeric>{mecz.player2sets}</Td>
+                        </Tr>
+                      </Tbody>
+                    </Table>
+                  </TableContainer>
+                </Box>
               );
-            })}{" "}
+            })}
           </Grid>
-        </Box>
-      </div>
-    </>
+        </VStack>
+      </Container>
+    </ChakraProvider>
   );
 };
 

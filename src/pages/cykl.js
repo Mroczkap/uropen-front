@@ -23,13 +23,13 @@ const Cykl = () => {
     textAlign: "center",
     justifyContent: "center",
     color: theme.palette.text.secondary,
-    minWidth: 300,
-    height: 55,
+    minWidth: 350,
+    height: 90,
   }));
 
   function getData() {
     axios
-      .put("/cykle", {
+      .get("/cycles/list", {
         withCredentials: true,
       })
       .then((response) => {

@@ -32,13 +32,13 @@ const Contact = () => {
     textAlign: "center",
     justifyContent: "center",
     color: theme.palette.text.secondary,
-    minWidth: 300,
-    height: 55,
+    minWidth: 350,
+    height: 90,
   }));
 
   function getData() {
     axios
-      .get("/turnieje", {
+      .get("/tournament", {
         withCredentials: true,
       })
       .then((response) => {

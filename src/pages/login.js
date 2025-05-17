@@ -11,7 +11,7 @@ import Card from "@mui/material/Card"
 import CardContent from "@mui/material/CardContent";
 
 import axios from "../api/axios";
-const LOGIN_URL = "auth";
+const LOGIN_URL = "auth/login";
 
 const Login = () => {
   const { setAuth, persist, setPersist } = useAuth();

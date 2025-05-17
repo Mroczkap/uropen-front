@@ -1,23 +1,78 @@
-import { useState } from "react";
-import "./navbar.css";
-import { Link } from "react-router-dom";
+import React from "react";
+import {
+  Box,
+  Flex,
+  HStack,
+  IconButton,
+  Button,
+  useDisclosure,
+  Stack,
+  ChakraProvider,
+  extendTheme,
+  Text
+} from "@chakra-ui/react";
+import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
+import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import useLogout from "../../hooks/useLogout";
-import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
-import logour from "../../assets/uropen2.jpg";
+
+const theme = extendTheme({
+  fonts: {
+    heading: "'Arial', sans-serif",
+    body: "'Roboto', sans-serif",
+  },
+  colors: {
+    brand: {
+      500: "#415160", // Dark blue-gray
+      600: "#FFFFFF", 
+    },
+  },
+  components: {
+    Button: {
+      baseStyle: {
+        fontWeight: "bold",
+      },
+    },
+  },
+});
+
+const NavLink = ({ children, to, onClick }) => {
+  const location = useLocation();
+  const isActive = location.pathname === to;
+
+  return (
+    <Box
+      as={RouterLink}
+      to={to}
+      px={3}
+      py={2}
+      rounded={"md"}
+      bg={isActive ? "brand.600" : "transparent"}
+      color={isActive ? "brand.500" : "white"}
+      fontWeight="bold"
+      fontSize="18px"
+      fontStyle="initial"
+      _hover={{
+        textDecoration: "none",
+        bg: "brand.600",
+        color: "blue.500",
+      }}
+      onClick={onClick}
+    >
+      {children}
+    </Box>
+  );
+};
 
 export default function Navbar() {
-  const [isNavExpanded, setIsNavExpanded] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const navigate = useNavigate();
   const logout = useLogout();
-
   const { auth } = useAuth();
 
   const isLoggedIn = auth?.roles?.find((role) => "5150"?.includes(role))
     ? true
     : false;
-
-  console.log("Czy zalogowany: ", isLoggedIn);
 
   const signOut = async () => {
     await logout();
@@ -28,87 +83,66 @@ export default function Navbar() {
     navigate("/login");
   };
 
-  const closeMenu = () => {
-    setIsNavExpanded(false);
+  const Links = [
+    { name: "Zawody", to: "/contact" },
+    { name: "Zawodnicy", to: "/blogs" },
+    { name: "Nowe zawody", to: "/sign-up" },
+    { name: "Mecze", to: "/match" },
+    { name: "Rankingi", to: "/about" },
+    { name: "Porównaj", to: "/compare" },
+    { name: "Cykl", to: "/cykl" },
+    { name: "Regulamin", to: "/regulamin" },
+  ];
+
+  const handleLinkClick = () => {
+    if (isOpen) {
+      onClose();
+    }
   };
 
   return (
-    <nav className="navigation">
-      <div className="logo-container">
-        {isLoggedIn ? (
-          <button onClick={signOut}>Wyloguj</button>
-        ) : (
-          <button onClick={signIn}>Zaloguj</button>
-        )}
-        <img src={logour} alt="Logo" className="logo-image" />
-      </div>
-      
-      <button
-        className="hamburger"
-        onClick={() => {
-          setIsNavExpanded(!isNavExpanded);
-        }}
-      >
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            d="M4 18L20 18"
-            stroke="#ffffff"
-            strokeWidth="2"
-            strokeLinecap="round"
+    <ChakraProvider theme={theme}>
+      <Box bg="brand.500" px={4}>
+        <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
+          <IconButton
+            size={"md"}
+            icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
+            aria-label={"Open Menu"}
+            display={{ md: "none" }}
+            onClick={isOpen ? onClose : onOpen}
+            color="black"
           />
-          <path
-            d="M4 12L20 12"
-            stroke="#ffffff"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-          <path
-            d="M4 6L20 6"
-            stroke="#ffffff"
-            strokeWidth="2"
-            strokeLinecap="round"
-          />
-        </svg>
-      </button>
-      <div
-        className={
-          isNavExpanded ? "navigation-menu expanded" : "navigation-menu"
-        }
-      >
-        <ul>
-          <li>
-            <Link to="/contact" onClick={closeMenu}>Zawody</Link>
-          </li>
-          <li>
-            <Link to="/blogs" onClick={closeMenu}>Zawodnicy</Link>
-          </li>
-          <li>
-            <Link to="/sign-up" onClick={closeMenu}>Nowe zawody</Link>
-          </li>
-          <li>
-            <Link to="/match" onClick={closeMenu}>Mecze</Link>
-          </li>
-          <li>
-            <Link to="/about" onClick={closeMenu}>Rankingi</Link>
-          </li>
-          <li>
-            <Link to="/compare" onClick={closeMenu}>Porównaj</Link>
-          </li>
-          <li>
-            <Link to="/cykl" onClick={closeMenu}>Cykl</Link>
-          </li>
-          <li>
-            <Link to="/regulamin" onClick={closeMenu}>Regulamin</Link>
-          </li>
-        </ul>
-      </div>
-      <div className="logo"></div>
-    </nav>
+          <HStack spacing={8} alignItems={"center"} flex={1} justifyContent="center">
+            <HStack as={"nav"} spacing={8} display={{ base: "none", md: "flex" }}>
+              {Links.map((link) => (
+                <NavLink key={link.name} to={link.to}>{link.name}</NavLink>
+              ))}
+            </HStack>
+          </HStack>
+          <Flex alignItems={"center"}>
+            <Button
+              onClick={isLoggedIn ? signOut : signIn}
+              colorScheme="whiteAlpha"
+              variant="outline"
+              fontWeight="bold"
+              color="white"
+              _hover={{ bg: "whiteAlpha.200" }}
+            >
+              {isLoggedIn ? "Wyloguj" : "Zaloguj"}
+            </Button>
+          </Flex>
+        </Flex>
+
+        {isOpen ? (
+          <Box pb={4} display={{ md: "none" }}>
+            <Stack as={"nav"} spacing={5}>
+              {Links.map((link) => (
+                <NavLink key={link.name} to={link.to} onClick={handleLinkClick}>{link.name}</NavLink>
+              ))}
+            </Stack>
+          </Box>
+        ) : null}
+      </Box>
+    </ChakraProvider>
   );
 }

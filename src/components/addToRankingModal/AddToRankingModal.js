@@ -1,185 +1,121 @@
-import * as React from "react";
-import Box from "@mui/material/Box";
-import Modal from "@mui/material/Modal";
-import Button from "@mui/material/Button";
-import { useState, useEffect } from "react";
-import { Typography } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import {
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  ModalCloseButton,
+  Button,
+  VStack,
+  Text,
+  useDisclosure,
+  Select,
+  Box,
+  ChakraProvider,
+} from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import axios from "../../api/axios";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
-import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-import { styled } from "@mui/material/styles";
-
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  minWidth: 250,
-  pt: 5,
-  px: 4,
-  pb: 3,
-};
-
-const Item = styled(Paper)(({ theme }) => ({
-  backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-  ...theme.typography.body2,
-  padding: theme.spacing(2),
-  display: "flex", // Use flex container
-  flexDirection: "column", // Stack items vertically
-  justifyContent: "center", // Vertically center align content
-  alignItems: "center", // Horizontally center align content
-  color: theme.palette.text.secondary,
-  minWidth: 300,
-  height: 55,
-}));
 
 export default function AddToRankingModal({ idzawodow }) {
-  const [open, setOpen] = useState(false);
+  const { isOpen, onOpen, onClose } = useDisclosure();
   const [rankingi, setRankingi] = useState([]);
-  const [nazwa, setNazwa] = useState("");
-  const [data, setData] = useState("");
-  const [idrankingu, setIdrankingu] = useState("");
+  const [selectedRanking, setSelectedRanking] = useState(null);
 
-  const handleOpen = () => {
-    setOpen(true);
-  };
-  const handleClose = () => {
-    setOpen(false);
-  };
+  useEffect(() => {
+    getData();
+  }, []);
 
   function getData() {
     axios
-      .put("/rankings", {
-        withCredentials: true,
-      })
+      .put("/rankings", { withCredentials: true })
       .then((response) => {
         if (response.status !== 200) {
           throw new Error(`Request failed with status: ${response.status}`);
         }
         return response.data;
       })
-      .then((data) => {
-        setRankingi(data);
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
+      .then(setRankingi)
+      .catch((error) => console.log(error.message));
   }
-  const handleRanking = (event) => {
+
+  const handleRanking = () => {
+    if (!selectedRanking) {
+      toast.error("Wybierz ranking!");
+      return;
+    }
+
     const data = {
       idzawodow: idzawodow,
-      idrankingu: idrankingu,
+      idrankingu: selectedRanking._id,
     };
-    if (idrankingu === "") {
-      toast.error("Wybierz rankig!");
-    } else {
-      axios
-        .post(`rankings`, data, {
-          headers: {
-            "Content-Type": "application/json",
-          },
-          withCredentials: true, // Include credentials in the request
-        })
-        .then((response) => {
-          if (response.status === 200) {
-            toast.success("Wyniki dodane do rankingu");
-          } else if (response.status === 203) {
-            toast.error("Wyniki już są w rankingu");
-          }
-        })
-        .catch((error) => {
-          console.error("An error occurred:", error);
-        });
-    }
+
+    axios
+      .post(`rankings`, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.status === 200) {
+          toast.success("Wyniki dodane do rankingu");
+          onClose(); // Close the modal after successful addition
+        } else if (response.status === 203) {
+          toast.error("Wyniki już są w rankingu");
+        }
+      })
+      .catch((error) => console.error("An error occurred:", error));
   };
 
-  const handleInputChange = (event, newValue) => {
-    const ranking = newValue._id ? newValue._id : "";
-    const nazwaRankingu = newValue.nazwarankingu ? newValue.nazwarankingu : " ";
-    const dataRankingu = newValue.datautworzenia
-      ? newValue.datautworzenia.split("T")[0]
-      : " ";
-    setIdrankingu(ranking);
-    setNazwa(nazwaRankingu);
-    setData(dataRankingu);
-  };
-  useEffect(() => {
-    getData();
-  }, []);
-
-  const ButtonModal = () => {
-    return (
-      <>
-        <Button variant="outlined" onClick={handleOpen}>
-          Dodaj wyniki do rankigu
-        </Button>
-      </>
-    );
-  };
   return (
-    <>
-      <div>
-        <ButtonModal />
-        <Modal
-          open={open}
-          onClose={handleClose}
-          aria-labelledby="parent-modal-title"
-          aria-describedby="parent-modal-description"
-        >
-          <Box
-            sx={{
-              ...style,
-              display: "flex",
-              justifyContent: "center",
-              maxWidth: 350,
-            }}
-          >
-            <Grid container spacing={1} style={{ justifyContent: "center" }}>
-              <Grid item xs="auto" p={1}>
-                <Item>
-                  {" "}
-                  <Autocomplete
-                    disablePortal
-                    onChange={handleInputChange}
-                    options={rankingi}
-                    getOptionLabel={(option) => option.nazwarankingu}
-                    sx={{ width: "100%" }}
-                    renderInput={(params) => (
-                      <TextField {...params} label={"Wybierz ranking"} />
-                    )}
-                  />
-                </Item>
-              </Grid>
+    <ChakraProvider>
+      <Button colorScheme="blue" onClick={onOpen}>
+        Dodaj wyniki do rankingu
+      </Button>
 
-              <Grid item xs="auto" p={1}>
-                <Item>
-                  {" "}
-                  <Typography variant="button">
-                    <b> Nazwa rankingu:</b> {nazwa} <br />{" "}
-                    <b>Data rankingu: </b>
-                    {data}
-                  </Typography>
-                </Item>
-              </Grid>
+      <Modal isOpen={isOpen} onClose={onClose} isCentered>
+        <ModalOverlay />
+        <ModalContent>
+          <ModalHeader>Dodaj do rankingu</ModalHeader>
+          <ModalCloseButton />
+          <ModalBody>
+            <VStack spacing={4} align="stretch">
+              <Select
+                placeholder="Wybierz ranking"
+                onChange={(e) => {
+                  const selected = rankingi.find(
+                    (r) => r._id === e.target.value
+                  );
+                  setSelectedRanking(selected);
+                }}
+              >
+                {rankingi.map((ranking) => (
+                  <option key={ranking._id} value={ranking._id}>
+                    {ranking.nazwarankingu}
+                  </option>
+                ))}
+              </Select>
 
-              <Grid item xs="auto" p={1}>
-                <Item>
-                  {" "}
-                  <Button variant="outlined" onClick={handleRanking}>
-                    Dodaj do rankingu
-                  </Button>
-                </Item>
-              </Grid>
-            </Grid>
-          </Box>
-        </Modal>
-      </div>
-    </>
+              {selectedRanking && (
+                <Box borderWidth={1} borderRadius="md" p={3}>
+                  <Text>
+                    <strong>Nazwa rankingu:</strong> {selectedRanking.nazwarankingu}
+                  </Text>
+                  <Text>
+                    <strong>Data rankingu:</strong>{" "}
+                    {new Date(selectedRanking.datautworzenia).toLocaleDateString()}
+                  </Text>
+                </Box>
+              )}
+            </VStack>
+          </ModalBody>
+          <ModalFooter>
+            <Button colorScheme="green" onClick={handleRanking}>
+              Dodaj do rankingu
+            </Button>
+          </ModalFooter>
+        </ModalContent>
+      </Modal>
+    </ChakraProvider>
   );
 }

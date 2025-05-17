@@ -4,7 +4,6 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Home from "./pages";
 import About from "./pages/about";
 import Cykl from "./pages/cykl";
-import Regulamin from "./pages/regulamin";
 import Blogs from "./pages/blogs";
 import SignUp from "./pages/signup";
 import Contact from "./pages/contact";
@@ -14,10 +13,11 @@ import Login from "./pages/login";
 import Unauthorized from "./pages/unauthorized";
 import RequireAuth from "./components/RequireAuth";
 import PersistLogin from "./components/PersistLogin";
+import ToastNotification from "./components/toast/toastNotification";
+import Regulamin from "./pages/regulamin";
 import Logo4 from './assets/logo4.jpg'
 import Logo2 from './assets/logo2.jpg'
 
-import ToastNotification from "./components/toast/toastNotification";
 
 const ROLES = {
   User: 2001,
@@ -54,13 +54,15 @@ function App() {
           </Route>
         </Route>
       </Routes>
-      <div className="header-container">
+     <div className="header-container">
       <img src={Logo4} alt="Logo4" className="logo1"/>
             
         <div className="header-text">Zadanie finansowane ze środków <br / >Gminy Miasto Rzeszów</div>
         <img src={Logo2} alt="Logo2" className="logo2"/>
       </div>
     </div>
+
+    
    
     
   );

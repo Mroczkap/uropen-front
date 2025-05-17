@@ -10,7 +10,7 @@ const Blogs = () => {
 
   function getData() {
     axios
-      .get("/zawodnicy", {
+      .get("/players", {
         withCredentials: true,
       })
       .then((response) => {

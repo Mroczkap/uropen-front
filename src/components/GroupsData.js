@@ -1,54 +1,114 @@
-import React, { useState } from "react";
-import PropTypes from "prop-types";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
-import Box from "@mui/material/Box";
-import MatchModal from "./modal/MatchModal";
-import { toast } from "react-toastify";
-import "react-toastify/dist/ReactToastify.css";
-import Button from "@mui/material/Button";
-import Table from "@mui/material/Table";
-import TableBody from "@mui/material/TableBody";
-import TableCell from "@mui/material/TableCell";
-import TableContainer from "@mui/material/TableContainer";
-import TableHead from "@mui/material/TableHead";
-import TableRow from "@mui/material/TableRow";
-import Paper from "@mui/material/Paper";
+import React, { useState, useEffect } from "react";
+import {
+  ChakraProvider,
+  Box,
+  Button,
+  Input,
+  Icon,
+  Switch,
+  Table,
+  Thead,
+  Tbody,
+  Tr,
+  Th,
+  Td,
+  Flex,
+  Text,
+  VStack,
+  HStack,
+  useColorModeValue,
+  useColorMode,
+} from "@chakra-ui/react";
+import { motion } from "framer-motion";
 import axios from "../api/axios";
-import Grid from "@mui/material/Grid";
-import { styled } from "@mui/material/styles";
-import TextField from "@mui/material/TextField";
-import Switch from "@mui/material/Switch";
-import FormControlLabel from "@mui/material/FormControlLabel";
+import { toast } from "react-toastify";
+import MatchModal from "./modal/MatchModal";
+import { FaTrophy } from "react-icons/fa";
 
-const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLoggedIn }) => {
-  const [value, setValue] = useState(0);
-  const [selectedPlayerName, seTSelectedPlayerName] = useState("");
-  const [showUnfinishedOnly, setShowUnfinishedOnly] = useState(false);
+const MotionBox = motion(Box);
 
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
+  return isMobile;
+};
+
+const GroupsData = ({
+  groups,
+  mecze,
+  onRefresh,
+  idzawodow,
+  typ,
+  isLoggedIn,
+  outGrups
+}) => {
+  console.log("out", outGrups)
+  const [activeTab, setActiveTab] = useState(0);
+  const [playerFilter, setPlayerFilter] = useState("");
+  const [showUnfinished, setShowUnfinished] = useState(false);
+  const { colorMode, toggleColorMode } = useColorMode();
+  const textColor = useColorModeValue("gray.800", "white");
+  const bgColor = useColorModeValue("blue.100", "blue.800");
+
+  const isMobile = useIsMobile();
+
+  const handleFinishGroup = (groupId, groupNumber) => {
+    let data = [groupId, groupNumber, typ];
+    axios
+      .post(`groups/finish-group?idzawodow=${idzawodow}`, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.status === 203) {
+          toast.error("Not all matches have been played");
+        } else if (response.status === 200) {
+          toast.success("Group successfully completed!");
+          onRefresh();
+        }
+      })
+      .catch((error) => {
+        console.error("An error occurred:", error);
+        toast.error("An error occurred while finishing the group");
+      });
   };
 
-  const handleFilterChange = (e) => {
-    seTSelectedPlayerName(e.target.value);
+  const handleFinishGroupStage = () => {
+    let data = [outGrups];
+    axios
+      .post(`groups/finish-stage?idzawodow=${idzawodow}`, data, {
+        headers: { "Content-Type": "application/json" },
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.status === 203) {
+          toast.error("Not all matches have been played");
+        } else if (response.status === 200) {
+          toast.success("Group stage successfully completed!");
+          onRefresh();
+        }
+      })
+      .catch((error) => {
+        console.error("An error occurred:", error);
+        toast.error("An error occurred while finishing the group stage");
+      });
   };
 
-  const handleToggleChange = (e) => {
-    setShowUnfinishedOnly(e.target.checked);
-  };
-
-  const Item = styled(Paper)({
-    textAlign: "center",
-    minWidth: 350,
-    width: "100%",
-    maxWidth: 400,
-  });
-
-  const progress = (matchId, inProgress) => {
+  const toggleMatchProgress = (matchId, inProgress) => {
     let data = [matchId, inProgress];
     axios
-      .put(`singleMatch`, data, {
+      .post(`match/progress`, data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -62,407 +122,347 @@ const GroupsData = ({ groups, mecze, onRefresh, idzawodow, typ, outGrups, isLogg
       });
   };
 
-  const handleClick = (event) => {
-    let data = [event.currentTarget.id, event.currentTarget.name, typ];
+  const PlayerTable = ({ players, wins, sets }) => (
+    <Table variant="simple" size={isMobile ? "sm" : "md"}>
+      <Thead bgColor={bgColor} height={10}>
+        <Tr>
+          <Th fontSize={isMobile ? "sm" : "lg"} textAlign="center">
+            {isMobile ? "R" : "Rank"}
+          </Th>
+          <Th fontSize={isMobile ? "sm" : "lg"}>Player</Th>
+          <Th fontSize={isMobile ? "sm" : "lg"} textAlign="center">
+            {isMobile ? "W" : "Wins"}
+          </Th>
+          <Th fontSize={isMobile ? "sm" : "lg"} textAlign="center">
+            {isMobile ? "S" : "Sets"}
+          </Th>
+        </Tr>
+      </Thead>
+      <Tbody>
+        {players.map((player, index) => (
+          <Tr key={index}>
+            <Td fontSize={isMobile ? "xs" : "md"} textAlign="center">
+              {index + 1}
+            </Td>
+            <Td fontSize={isMobile ? "xs" : "md"}>{player}</Td>
+            <Td fontSize={isMobile ? "xs" : "md"} textAlign="center">
+              {wins[index]}
+            </Td>
+            <Td fontSize={isMobile ? "xs" : "md"} textAlign="center">
+              {sets[index]}
+            </Td>
+          </Tr>
+        ))}
+      </Tbody>
+    </Table>
+  );
 
-    axios
-      .post(`finishgroup?idzawodow=${idzawodow}`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.status === 203) {
-          toast.error("Nie wszystkie mecze zostały rozegrane");
-        } else if (response.status === 200) {
-          toast.success("Grupa poprawnie rozegrana!");
-          onRefresh();
-        }
-      })
-      .catch((error) => {
-        console.error("An error occurred:", error);
-      });
-  };
+  const MatchTable = ({ matches, onToggleProgress, groupId }) => {
+    const completedBgColor = useColorModeValue("green.100", "green.700");
+    const inProgressBgColor = useColorModeValue("red.100", "red.700");
+    const defaultBgColor = useColorModeValue("white", "gray.800");
+    const isMobile = useIsMobile();
 
-  const handleClick2 = (event) => {
-    let data = [outGrups];
+    if (isMobile) {
+      return (
+        <VStack spacing={4} align="stretch">
+          {matches.map((match, index) => {
+            const bgColor =
+              match.player1sets === 3 || match.player2sets === 3
+                ? completedBgColor
+                : match.inprogress
+                ? inProgressBgColor
+                : defaultBgColor;
 
-    axios
-      .post(`finishgroupstage?idzawodow=${idzawodow}`, data, {
-        headers: {
-          "Content-Type": "application/json",
-        },
-        withCredentials: true, // Include credentials in the request
-      })
-      .then((response) => {
-        if (response.status === 203) {
-          toast.error("Nie wszystkie mecze zostały rozegrane");
-        } else if (response.status === 200) {
-          toast.success("Grupay poprawnie rozegrana!");
-          onRefresh();
-        }
-      })
-      .catch((error) => {
-        console.error("An error occurred:", error);
-      });
-  };
-
-  function findMatches(groupid) {
-    const elementsWithValue = mecze.filter(
-      (number) => groupid === number.idgrupy
-    );
-    return elementsWithValue;
-  }
-
-  return (
-    <>
-      <Box sx={{ width: "100%" }}>
-        {(typ !== 1 && typ !== 4) & isLoggedIn ? (
-          <Button onClick={handleClick2} variant="outlined">
-            Zakończ rozgrywki grupowe
-          </Button>
-        ) : null}
-        <Box
-          sx={{
-            borderBottom: 2,
-            borderColor: "divider",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            aria-label="basic tabs example"
-          >
-            {groups.map((grupa) => {
-              return (
-                <Tab
-                  key={grupa.grupid}
-                  label={`Grupa ${grupa.grupid}`}
-                  {...a11yProps(grupa.grupid)}
-                />
-              );
-            })}
-          </Tabs>
-        </Box>
-
-        {groups.map((group) => {
-          const { _id, grupid, zawodnicy, wygrane, sety } = group;
-          const meczes = findMatches(_id);
-          const filteredData = meczes.filter((item) => {
-            const player1Match = item.player1name
-              .toLowerCase()
-              .includes(selectedPlayerName.toLowerCase());
-            const player2Match = item.player2name
-              .toLowerCase()
-              .includes(selectedPlayerName.toLowerCase());
-
-            // Check if either player1name or player2name matches
-            return player1Match || player2Match;
-          }).filter((item) => {
-            // Filter based on the toggle state
-            if (showUnfinishedOnly) {
-              return item.player1sets !== 3 && item.player2sets !== 3;
-            }
-            return true;
-          });
-
-          return (
-            <CustomTabPanel key={grupid - 1} value={value} index={grupid - 1}>
-              <Box
-                display="flex"
-                justifyContent="center"
-                alignItems="center"
-                flexDirection="column"
-                p={2}
-              >
-                {(typ === 1 || typ === 4) & isLoggedIn ? (
-                  <Button
-                    variant="outlined"
-                    id={_id}
-                    name={grupid}
-                    onClick={handleClick}
+            return (
+              <Box key={index} bg={bgColor} p={2} borderRadius="md">
+                <VStack spacing={2} align="stretch">
+                  <Flex justifyContent="space-between" alignItems="center">
+                    <Text fontSize="sm" fontWeight="bold">
+                      Match {index + 1}
+                    </Text>
+                    {isLoggedIn && (
+                      <Flex alignItems="center">
+                        <Switch
+                          isChecked={match.inprogress}
+                          onChange={() =>
+                            onToggleProgress(match._id, !match.inprogress)
+                          }
+                          size="sm"
+                        />
+                      </Flex>
+                    )}
+                  </Flex>
+                  <Flex
+                    justifyContent="space-between"
+                    alignItems="center"
+                    mx="15px"
                   >
-                    Zakończ grupe
-                  </Button>
-                ) : null}
-
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  flexDirection="column"
-                  p={2}
-                  sx={{ width: "100%" }}
-                >
-                  <TableContainer
-                    component={Paper}
-                    sx={{ maxWidth: 825, boxShadow: 10, minWidth: 350 }}
-                  >
-                    <Table sx={{ minWidth: 200 }} aria-label="simple table">
-                      <TableHead>
-                        <TableRow>
-                          <TableCell>L.p.</TableCell>
-                          <TableCell>Zawodnik</TableCell>
-                          <TableCell>W</TableCell>
-                          <TableCell>S</TableCell>
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {zawodnicy.map((zawodnik, index) => (
-                          <TableRow
-                            key={`${_id}-${index}`}
-                            sx={{
-                              "&:last-child td, &:last-child th": { border: 0 },
-                            }}
-                          >
-                            <TableCell component="th" scope="row">
-                              {index + 1}
-                            </TableCell>
-                            <TableCell>{zawodnik}</TableCell>
-                            <TableCell>{wygrane[index]}</TableCell>
-                            <TableCell>{sety[index]}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Box>
-                <Box
-                  display="flex"
-                  justifyContent="center"
-                  alignItems="center"
-                  flexDirection="column"
-                  p={2}
-                  sx={{ width: "100%" }}
-                >
-                  {" "}
-                  {meczes.length > 10 ? (
-                    <TextField
-                      size="small"
-                      id="outlined-basic"
-                      label="nazwisko..."
-                      variant="outlined"
-                      value={selectedPlayerName}
-                      autoComplete="off"
-                      onChange={handleFilterChange}
-                      component={Paper}
-                      sx={{
-                        width: "100%",
-                        boxShadow: 10,
-                        minWidth: 350,
-                        maxWidth: 825,
-                      }}
-                    />
-                  ) : null}
-                </Box>
-                <FormControlLabel
-                  control={
-                    <Switch
-                      checked={showUnfinishedOnly}
-                      onChange={handleToggleChange}
-                      name="showUnfinishedOnly"
-                    />
-                  }
-                  label="Pokaż tylko nierozegrane mecze"
-                />
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "center",
-                    width: "100%",
-                    minWidth: 350,
-                  }}
-                  p={1}
-                >
-                  <Grid
-                    container
-                    spacing={3}
-                    style={{
-                      width: "100%",
-                      justifyContent: "center",
-                      maxWidth: 840,
-                    }}
-                  >
-                    {filteredData.map((mecz, index) => {
-                      const handleSwitchClick = () => {
-                        if (mecz.inprogress) {
-                          progress(mecz._id, false);
-                        } else {
-                          progress(mecz._id, true);
-                        }
-                      };
-                      let borderColor = null;
-                      let backgroundColor = null;
-                      let checked = false;
-                      if (mecz.player1sets === 3 || mecz.player2sets === 3) {
-                        backgroundColor = "#dbead5";
-                        borderColor = "#80cbc4";
-                        checked = false;
-                      } else if (mecz.inprogress) {
-                        backgroundColor = "#ffa08e";
-                        borderColor = "#ef5350"; // Use the desired background color for highlighted matches
-                        checked = true;
-                      }
-
-                      return (
-                        <Grid
-                          item
-                          xs="auto"
-                          key={index}
-                          style={{
-                            justifyContent: "center",
-                            width: "100%",
-                            maxWidth: 420,
-                          }}
-                        >
-                          <Box
-                            display="flex"
-                            justifyContent="center"
-                            alignItems="center"
-                            flexDirection="column"
-                            sx={{ width: "100%" }}
-                          >
-                            <Item>
-                              {" "}
-                              <TableContainer
-                                component={Paper}
-                                sx={{ boxShadow: 10 }}
-                              >
-                                <Table
-                                  sx={{
-                                    width: "100%",
-                                    backgroundColor: backgroundColor,
-                                  }}
-                                  aria-label="simple table"
-                                >
-                                  <TableHead>
-                                    <TableRow>
-                                      <TableCell
-                                        component="th"
-                                        scope="row"
-                                        colSpan="2"
-                                        sx={{ borderColor: borderColor }}
-                                      >
-                                        Mecz {index + 1}{" "}
-                                      </TableCell>
-
-                                      <TableCell
-                                        align="right"
-                                        sx={{ borderColor: borderColor }}
-                                      > 
-                                        {isLoggedIn ? (
-                                          <Switch
-                                            checked={checked}
-                                            onChange={handleSwitchClick}
-                                          />
-                                        ) : null}
-                                      </TableCell>
-                                    </TableRow>
-                                  </TableHead>
-                                  <TableBody>
-                                    <TableRow
-                                      sx={{
-                                        "&:last-child td, &:last-child th": {
-                                          border: 0,
-                                        },
-                                      }}
-                                    >
-                                      <TableCell
-                                        sx={{ borderColor: borderColor }}
-                                      >
-                                        {mecz.player1name}
-                                      </TableCell>
-                                      <TableCell
-                                        sx={{ borderColor: borderColor }}
-                                      >
-                                        {mecz.player1sets}
-                                      </TableCell>
-                                      <TableCell
-                                        rowSpan={2}
-                                        sx={{ border: 0 }}
-                                        style={{
-                                          justifyContent: "center",
-                                          alignItems: "center",
-                                          textAlign: "center",
-                                        }}
-                                      >
-                                        {isLoggedIn ? (
-                                          <MatchModal
-                                            onRefresh={onRefresh}
-                                            meczid={mecz._id}
-                                            player1={mecz.player1name}
-                                            player2={mecz.player2name}
-                                            player1id={mecz.player1id}
-                                            player2id={mecz.player2id}
-                                            groupid={_id}
-                                            player1sets={mecz.player1sets}
-                                            player2sets={mecz.player2sets}
-                                          />
-                                        ) : null}
-                                      </TableCell>
-                                    </TableRow>
-
-                                    <TableRow
-                                      sx={{
-                                        "&:last-child td, &:last-child th": {
-                                          border: 0,
-                                        },
-                                      }}
-                                    >
-                                      <TableCell>{mecz.player2name}</TableCell>
-                                      <TableCell>{mecz.player2sets}</TableCell>
-                                    </TableRow>
-                                  </TableBody>
-                                </Table>
-                              </TableContainer>
-                            </Item>
-                          </Box>
-                        </Grid>
-                      );
-                    })}{" "}
-                  </Grid>
-                </Box>
+                    <VStack align="start" spacing={0}>
+                      <Text fontSize="xs">{match.player1name}</Text>
+                      <Text fontSize="xs">{match.player2name}</Text>
+                    </VStack>
+                    <VStack align="end" spacing={0}>
+                      <Text fontSize="sm" fontWeight="bold">
+                        {match.player1sets}
+                      </Text>
+                      <Text fontSize="sm" fontWeight="bold">
+                        {match.player2sets}
+                      </Text>
+                    </VStack>
+                  </Flex>
+                  {isLoggedIn && (
+                    <Box alignSelf="center">
+                      <MatchModal
+                      toRank={false}
+                        onRefresh={onRefresh}
+                        meczid={match._id}
+                        player1={match.player1name}
+                        player2={match.player2name}
+                        player1id={match.player1id}
+                        player2id={match.player2id}
+                        groupid={groupId}
+                        player1sets={match.player1sets}
+                        player2sets={match.player2sets}
+                      />
+                    </Box>
+                  )}
+                </VStack>
               </Box>
-            </CustomTabPanel>
-          );
-        })}
-      </Box>
-    </>
-  );
-};
+            );
+          })}
+        </VStack>
+      );
+    }
 
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
+    return (
+      <Table variant="simple" size={isLoggedIn ? "sm" : "md"}>
+       
+        <Tbody>
+          {matches.map((match, index) => {
+            const bgColor =
+              match.player1sets === 3 || match.player2sets === 3
+                ? completedBgColor
+                : match.inprogress
+                ? inProgressBgColor
+                : defaultBgColor;
+
+            return (
+              <Tr key={index} bg={bgColor}>
+                <Td fontSize="md" textAlign="center">
+                  {index + 1}
+                </Td>
+                <Td fontSize="md">{match.player1name}</Td>
+                <Td fontSize="md">{match.player2name}</Td>
+                <Td fontSize="md" textAlign="center" fontWeight="bold">
+                  {match.player1sets} - {match.player2sets}
+                </Td>
+                <Td fontSize="md" textAlign="center">
+                  {isLoggedIn && (
+                    <Switch
+                      isChecked={match.inprogress}
+                      onChange={() =>
+                        onToggleProgress(match._id, !match.inprogress)
+                      }
+                      size="md"
+                    />
+                  )}
+                </Td>
+                <Td fontSize="sm" textAlign="center">
+                  {isLoggedIn && (
+                    <MatchModal
+                      toRank={false}
+                      onRefresh={onRefresh}
+                      meczid={match._id}
+                      player1={match.player1name}
+                      player2={match.player2name}
+                      player1id={match.player1id}
+                      player2id={match.player2id}
+                      groupid={groupId}
+                      player1sets={match.player1sets}
+                      player2sets={match.player2sets}
+                    />
+                  )}
+                </Td>
+              </Tr>
+            );
+          })}
+        </Tbody>
+      </Table>
+    );
+  };
+
+  const renderGroupContent = (group) => {
+    const groupMatches = mecze.filter((m) => m.idgrupy === group._id);
+
+    return (
+      <MotionBox
+        key={group._id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: -20 }}
+        transition={{ duration: 0.5 }}
+      >
+        <VStack spacing={2} align="stretch">
+          <Box
+            overflowX="auto"
+            boxShadow="0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)"
+            borderRadius="md"
+          >
+            <PlayerTable
+              players={group.zawodnicy}
+              wins={group.wygrane}
+              sets={group.sety}
+            />
+          </Box>
+
+          {groupMatches.length > 8 && (
+            <Flex
+              mt={4}
+              flexDirection={isMobile ? "column" : "row"}
+              alignItems="center"
+            >
+              <Input
+                placeholder="Filter by player name"
+                value={playerFilter}
+                onChange={(e) => setPlayerFilter(e.target.value)}
+                size={isMobile ? "sm" : "lg"}
+                fontSize={isMobile ? "sm" : "md"}
+                mb={isMobile ? 2 : 0}
+                boxShadow="0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)"
+              />
+            </Flex>
+          )}
+
+          <Box
+            overflowX="auto"
+            marginTop={5}
+            boxShadow="0 4px 6px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.08)"
+            borderRadius="md"
+          >
+            <MatchTable
+              matches={groupMatches
+                .filter(
+                  (m) =>
+                    m.player1name
+                      .toLowerCase()
+                      .includes(playerFilter.toLowerCase()) ||
+                    m.player2name
+                      .toLowerCase()
+                      .includes(playerFilter.toLowerCase())
+                )
+                .filter(
+                  (m) =>
+                    !showUnfinished ||
+                    (m.player1sets !== 3 && m.player2sets !== 3)
+                )}
+              onToggleProgress={toggleMatchProgress}
+              groupId={group._id}
+            />
+          </Box>
+
+          <Flex
+            justifyContent="center"
+            width="100%"
+            alignItems="center"
+            marginTop={30}
+            marginBottom={30}
+          >
+            <Text fontSize={isMobile ? "xs" : "lg"} mr={2}>
+              Show only unfinished matches
+            </Text>
+            <Switch
+              isChecked={showUnfinished}
+              onChange={(e) => setShowUnfinished(e.target.checked)}
+              size={isMobile ? "sm" : "lg"}
+            />
+          </Flex>
+        </VStack>
+      </MotionBox>
+    );
+  };
 
   return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
+    <ChakraProvider>
+      <Box
+        maxWidth={isMobile ? "100%" : "1100px"}
+        margin="auto"
+        padding={isMobile ? "2" : "4"}
+      >
+        <VStack spacing={4} align="stretch">
+          {isMobile && isLoggedIn && (
+            <Button
+              onClick={
+                typ !== 1 && typ !== 4
+                  ? handleFinishGroupStage
+                  : () =>
+                      handleFinishGroup(
+                        groups[activeTab]._id,
+                        groups[activeTab].grupid
+                      )
+              }
+              colorScheme="green"
+              size="sm"
+              width="100%"
+              leftIcon={<Icon as={FaTrophy} />}
+            >
+              {typ !== 1 && typ !== 4 ? "Finish Group Stage " : "Finish Group"}
+            </Button>
+          )}
+
+          <Flex
+            justifyContent={isMobile ? "center" : "space-between"}
+            alignItems="center"
+            mb={1}
+            flexDirection={isMobile ? "column" : "row"}
+          >
+            <HStack
+              justifyContent={isMobile ? "center" : "left"}
+              spacing={2}
+              overflowX="auto"
+              width="100%"
+              paddingBottom={2}
+              flexWrap={isMobile ? "wrap" : "nowrap"}
+              
+            >
+              {groups.map((group, index) => (
+                <Button
+                  key={group._id}
+                  onClick={() => setActiveTab(index)}
+                  colorScheme={activeTab === index ? "blue" : "gray"}
+                  size={isMobile ? "sm" : "md"}
+                  mt={2}
+                >
+                  Group {group.grupid}
+                </Button>
+              ))}
+            </HStack>
+
+            {!isMobile && isLoggedIn && (
+              <Button
+                onClick={
+                  typ !== 1 && typ !== 4
+                    ? handleFinishGroupStage
+                    : () =>
+                        handleFinishGroup(
+                          groups[activeTab]._id,
+                          groups[activeTab].grupid
+                        )
+                }
+                leftIcon={<Icon as={FaTrophy} />}
+                colorScheme="green"
+                size="lg"
+              >
+                {typ !== 1 && typ !== 4 ? "Finish Group Stage" : "Finish Group"}
+              </Button>
+            )}
+          </Flex>
+
+          {groups[activeTab] && renderGroupContent(groups[activeTab])}
+        </VStack>
+      </Box>
+    </ChakraProvider>
   );
-}
-
-CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
 };
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
 
 export default GroupsData;

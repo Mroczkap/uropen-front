@@ -1,13 +1,17 @@
 import React from "react";
 import UserComparisonChart from "../components/UserComparisonChart";
-import Box from "@mui/material/Box";
+import {
+  Box,
+  Button,
+  Text,
+  VStack,
+  HStack,
+  Container,
+  ChakraProvider,
+  useMediaQuery,
+} from "@chakra-ui/react";
 import { useState, useEffect } from "react";
-import TextField from "@mui/material/TextField";
-import Autocomplete from "@mui/material/Autocomplete";
-import { Button } from "@mui/material";
-import Paper from "@mui/material/Paper";
-import Grid from "@mui/material/Grid";
-import { styled } from "@mui/material/styles";
+import { Select } from "chakra-react-select";
 import axios from "../api/axios";
 import { toast } from "react-toastify";
 
@@ -15,12 +19,13 @@ const Compare = () => {
   const [users, setUsers] = useState([]);
   const [chartdata, setChartdata] = useState([]);
   const [idrankingu, setIdrankingu] = useState("");
+  const [isMobile] = useMediaQuery("(max-width: 48em)");
   let user1;
   let user2;
 
   function getData() {
     axios
-    .get(`/zawodnicy?sorting=${1}`, {
+      .get(`/players?sorting=${1}`, {
         withCredentials: true,
       })
       .then((response) => {
@@ -55,17 +60,6 @@ const Compare = () => {
       });
   }
 
-  const Item = styled(Paper)(({ theme }) => ({
-    backgroundColor: theme.palette.mode === "dark" ? "#1A2027" : "#fff",
-    ...theme.typography.body2,
-    padding: theme.spacing(2),
-    textAlign: "center",
-    justifyContent: "center",
-    color: theme.palette.text.secondary,
-    minWidth: 300,
-    height: 55,
-  }));
-
   const porownaj = () => {
     if (user1 && user2 && user1 !== user2) {
       const queryParams = {
@@ -96,83 +90,68 @@ const Compare = () => {
     }
   };
 
-  const handleInputChange = (event, selectedValue) => {
-    const id = event.target.id[0];
-    if (id === "1") {
-      user1 = selectedValue;
-    } else if (id === "2") {
-      user2 = selectedValue;
+  const handleInputChange = (selectedValue, id) => {
+    if (id === "user1") {
+      user1 = selectedValue.value;
+    } else if (id === "user2") {
+      user2 = selectedValue.value;
     }
   };
+
   useEffect(() => {
     getData();
   }, []);
 
   return (
-    <>
-      <div className="container">
-        <h1>Porównanie zawodników</h1>
-      </div>
-      <div className="container">
-        <Box sx={{ flexGrow: 1, maxWidth: 800 }}>
-          <Grid container spacing={2} style={{ justifyContent: "center" }}>
-            <Grid item xs="auto" p={2}>
-              <Item>
-                {" "}
-                <Autocomplete
-                  disablePortal
-                  onChange={handleInputChange}
-                  options={users}
-                  id="1"
-                  getOptionLabel={(option) =>
-                    option.nazwisko + " " + option.imie
-                  }
-                  sx={{}}
-                  renderInput={(params) => (
-                    <TextField {...params} label={"Wybierz zawodnika"} />
-                  )}
-                />
-              </Item>
-            </Grid>
-
-            <Grid item xs="auto" p={1}>
-              <Item>
-                {" "}
-                <Autocomplete
-                  disablePortal
-                  onChange={handleInputChange}
-                  options={users}
-                  id="2"
-                  getOptionLabel={(option) =>
-                    option.nazwisko + " " + option.imie
-                  }
-                  sx={{}}
-                  renderInput={(params) => (
-                    <TextField {...params} label={"Wybierz zawodnika"} />
-                  )}
-                />
-              </Item>
-            </Grid>
-          </Grid>
+    <ChakraProvider>
+      <Container maxW="950px" centerContent>
+        <Box textAlign="center" py={10} px={6}>
+          <Text fontSize="3xl">Porównanie zawodników</Text>
         </Box>
-      </div>
-      <div className="container">
-        <Button
-          variant="contained"
-          onClick={porownaj}
-          sx={{ width: "70%", minWidth: 330, maxWidth: 700 }}
-          color="success"
-        >
-          Dokonaj porównania
-        </Button>
-      </div>
-      {chartdata.length === 0 ? null : (
-        <UserComparisonChart
-          userData1={chartdata[0]}
-          userData2={chartdata[1]}
-        />
-      )}
-    </>
+        <VStack spacing={4} align="center" w="100%">
+          <HStack
+            spacing={4}
+            w="100%"
+            justify="center"
+            flexWrap={isMobile ? "wrap" : "nowrap"}
+          >
+            <Box minWidth="300px" w="100%">
+              <Select
+                options={users.map((user) => ({
+                  value: user,
+                  label: `${user.nazwisko} ${user.imie}`,
+                }))}
+                placeholder="Wybierz zawodnika"
+                onChange={(selectedValue) =>
+                  handleInputChange(selectedValue, "user1")
+                }
+              />
+            </Box>
+            <Box minWidth="300px" w="100%">
+              <Select
+                options={users.map((user) => ({
+                  value: user,
+                  label: `${user.nazwisko} ${user.imie}`,
+                }))}
+                placeholder="Wybierz zawodnika"
+                onChange={(selectedValue) =>
+                  handleInputChange(selectedValue, "user2")
+                }
+              />
+            </Box>
+          </HStack>
+          <Button colorScheme="green" size="lg" onClick={porownaj} w="100%">
+            Dokonaj porównania
+          </Button>
+          {chartdata.length !== 0 && (
+            <UserComparisonChart
+              userData1={chartdata[0]}
+              userData2={chartdata[1]}
+            />
+          )}
+        </VStack>
+      </Container>
+    </ChakraProvider>
   );
 };
 

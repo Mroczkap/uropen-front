@@ -23,8 +23,8 @@ const About = () => {
     textAlign: "center",
     justifyContent: "center",
     color: theme.palette.text.secondary,
-    minWidth: 300,
-    height: 55,
+    minWidth: 350,
+    height: 90,
   }));
 
   function getData() {
@@ -96,7 +96,7 @@ const About = () => {
           </Grid>
         </Box>
       </div>
-      <div className="container">
+      <div >
         {idrankingu !== "" && <Rankings idrankingu={idrankingu} />}
       </div>
     </>

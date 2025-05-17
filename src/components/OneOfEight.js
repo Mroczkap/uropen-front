@@ -1,258 +1,237 @@
-import "react-toastify/dist/ReactToastify.css";
+import React, { useState, useEffect, useCallback } from "react";
+import {
+  Box,
+  Tabs,
+  TabList,
+  TabPanels,
+  Tab,
+  TabPanel,
+  useColorModeValue,
+  Spinner,
+  Center,
+  ChakraProvider,
+  Container,
+  useMediaQuery,
+} from "@chakra-ui/react";
+import { motion } from "framer-motion";
+import axios from "../api/axios";
+
 import GroupsData from "../components/GroupsData";
-import { useState, useEffect } from "react";
-import Box from "@mui/material/Box";
-import PropTypes from "prop-types";
-import Tabs from "@mui/material/Tabs";
-import Tab from "@mui/material/Tab";
 import Runda from "../components/Runda";
 import Wyniki from "../components/Wyniki";
-import axios from "../api/axios";
-import React from "react";
+
+const MotionBox = motion(Box);
 
 const OneOfEight = ({ idzawodow, typ, isLoggedIn }) => {
-  const handleChange = (event, newValue) => {
-    setValue(newValue);
-  };
+  const [tabIndex, setTabIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [data, setData] = useState({
+    groups: [],
+    mecze: [],
+    meczeRund18: [],
+    meczeRund14: [],
+    meczeRund12: [],
+    meczeRundF: [],
+    wyniki: [],
+  });
 
-  const [value, setValue] = useState(0);
-  const [groups, setGroups] = useState([]);
-  const [mecze, setMecze] = useState([]);
-  const [meczeRund18, setMeczeRund18] = useState([]);
-  const [meczeRund14, setMeczeRund14] = useState([]);
-  const [meczeRund12, setMeczeRund12] = useState([]);
-  const [meczeRundF, setMeczeRundF] = useState([]);
-  const [wyniki, setWyniki] = useState([]);
+  const [isMobile] = useMediaQuery("(max-width: 48em)");
 
-  function getGroup() {
-    axios
-      .get(`/groups?idzawodow=${idzawodow}`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.status !== 200) {
-          throw new Error(`Request failed with status: ${response.status}`);
-        }
-        return response.data;
-      })
-      .then((data) => {
-        setGroups(data[0]);
-        setMecze(data[1]);
-      })
-      .catch((error) => {
-        console.log(error.message);
-      });
-  }
-
-  function getMatches() {
-    axios
-      .get(`/roundMatch?idzawodow=${idzawodow}`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.status !== 200) {
-          throw new Error(`Request failed with status: ${response.status}`);
-        }
-        return response.data;
-      })
-      .then((data) => {
-        const one8 = data.filter((item) => item.round === "1/8");
-        const one4 = data.filter((item) => item.round === "1/4");
-        const one2 = data.filter((item) => item.round === "1/2");
-        const final = data.filter((item) => item.round === "final");
-
-        setMeczeRund18(one8);
-        setMeczeRund14(one4);
-        setMeczeRund12(one2);
-        setMeczeRundF(final);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-  }
-
-  function getWyniki() {
-    axios
-      .get(`/wyniki?idzawodow=${idzawodow}`, {
-        withCredentials: true,
-      })
-      .then((response) => {
-        if (response.status !== 200) {
-          throw new Error(`Request failed with status: ${response.status}`);
-        }
-        return response.data;
-      })
-      .then((data) => {
-        setWyniki(data);
-      })
-      .catch((err) => {
-        console.log(err.message);
-      });
-  }
-
-  function refresh1() {
-    getGroup();
-    getMatches();
-    if (typ === 4) {
-      getWyniki();
+  const bgColor = useColorModeValue("white", "gray.800");
+  const borderColor = useColorModeValue("gray.200", "gray.700");
+  const tabBg = useColorModeValue("black.100", "black.800");
+  const activeTabBg = useColorModeValue("blue.500", "blue.700");
+  const activeTabColor = useColorModeValue("white", "white.200");
+  const tabColor = useColorModeValue("gray.600", "gray.400");
+  const fetchData = useCallback(async (url, params) => {
+    try {
+      const response = await axios.get(url, { params, withCredentials: true });
+      return response.data;
+    } catch (error) {
+      console.error(`Error fetching data from ${url}:`, error);
+      return null;
     }
-  }
-  function refresh2() {
-    getMatches();
-    getWyniki();
-  }
+  }, []);
+
+  const updateData = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const [groupsData, matchesData, wynikiData] = await Promise.all([
+        fetchData(`/groups/groups`, { idzawodow }),
+        fetchData(`/match/listRound`, { idzawodow }),
+        fetchData(`/results`, { idzawodow }),
+      ]);
+
+      setData({
+        groups: groupsData ? groupsData[0] || [] : [],
+        mecze: groupsData ? groupsData[1] || [] : [],
+        meczeRund18: matchesData
+          ? matchesData.filter((item) => item.round === "1/8")
+          : [],
+        meczeRund14: matchesData
+          ? matchesData.filter((item) => item.round === "1/4")
+          : [],
+        meczeRund12: matchesData
+          ? matchesData.filter((item) => item.round === "1/2")
+          : [],
+        meczeRundF: matchesData
+          ? matchesData.filter((item) => item.round === "final")
+          : [],
+        wyniki: wynikiData || [],
+      });
+    } catch (error) {
+      console.error("Error updating data:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [fetchData, idzawodow]);
 
   useEffect(() => {
-    getGroup();
-    getWyniki();
-    getMatches();
-  }, [idzawodow]);
-  const tabLabels = [
-    { label: "Grupy", data: groups },
-    { label: "1/8", data: meczeRund18 },
-    { label: "1/4", data: meczeRund14 },
-    { label: "1/2", data: meczeRund12 },
-    { label: "finał", data: meczeRundF },
-    { label: "Wyniki", data: wyniki },
-  ];
-  const indexes = [];
-  let ind = 0;
-  let outGrups = 0;
+    console.log("dataaa", data)
+    updateData();
+  }, [updateData]);
+
+  const tabData = [
+    {
+     
+      label: "Grupy",
+      content: (
+        <GroupsData
+          isLoggedIn={isLoggedIn}
+          groups={data.groups}
+          mecze={data.mecze}
+          idzawodow={idzawodow}
+          onRefresh={updateData}
+          typ={typ}
+          outGrups={data.meczeRundF.length ? data.meczeRundF.length : 0}
+        />
+      ),
+      condition: data.groups.length > 0 || data.mecze.length > 0,
+    },
+    {
+      label: "1/8",
+      content: (
+        <Runda
+          meczeRund={data.meczeRund18}
+          idzawodow={idzawodow}
+          runda="1/4"
+          onRefresh={updateData}
+          typ={typ}
+          isLoggedIn={isLoggedIn}
+        />
+      ),
+      condition: data.meczeRund18.length > 0,
+    },
+    {
+      label: "1/4",
+      content: (
+        <Runda
+          meczeRund={data.meczeRund14}
+          idzawodow={idzawodow}
+          runda="1/2"
+          onRefresh={updateData}
+          typ={typ}
+          isLoggedIn={isLoggedIn}
+        />
+      ),
+      condition: data.meczeRund14.length > 0,
+    },
+    {
+      label: "1/2",
+      content: (
+        <Runda
+          meczeRund={data.meczeRund12}
+          idzawodow={idzawodow}
+          runda="final"
+          onRefresh={updateData}
+          typ={typ}
+          isLoggedIn={isLoggedIn}
+        />
+      ),
+      condition: data.meczeRund12.length > 0,
+    },
+    {
+      label: "Finał",
+      content: (
+        <Runda
+          meczeRund={data.meczeRundF}
+          idzawodow={idzawodow}
+          runda="wyniki"
+          onRefresh={updateData}
+          typ={typ}
+          isLoggedIn={isLoggedIn}
+        />
+      ),
+      condition: data.meczeRundF.length > 0,
+    },
+    {
+      label: "Wyniki",
+      content: (
+        <Wyniki
+          wyniki={data.wyniki}
+          idzawodow={idzawodow}
+          isLoggedIn={isLoggedIn}
+        />
+      ),
+      condition: data.wyniki.length > 0,
+    },
+  ].filter((tab) => tab.condition);
+
   return (
-    <>
-      <Box sx={{ width: "100%" }}>
-        <Box
-          sx={{
-            borderBottom: 2,
-            borderColor: "divider",
-            display: "flex",
-            justifyContent: "center",
-          }}
-        >
-          <Tabs
-            value={value}
-            onChange={handleChange}
-            variant="scrollable"
-            scrollButtons="auto"
-            aria-label="basic tabs example"
+    <ChakraProvider>
+      <Container maxW="1100px" px={4} >
+        <Tabs index={tabIndex} onChange={setTabIndex} variant="unstyled" isLazy>
+          <TabList
+            justifyContent="center"
+            p={4}
+            bg={tabBg}
+            borderBottomWidth={1}
+            borderColor={borderColor}
+            overflowX={isMobile ? "auto" : "visible"}
+            flexWrap={isMobile ? "wrap" : "wrap"}
+            sx={{
+              "&::-webkit-scrollbar": {
+                display: "none",
+              },
+              "-ms-overflow-style": "none",
+              "scrollbar-width": "none",
+            }}
           >
-            {tabLabels.map((tab, index) => {
-              if (tab.data.length > 0) {
-                outGrups =
-                  outGrups < tab.data.length && tab.label !== "Wyniki"
-                    ? tab.data.length
-                    : outGrups;
-                indexes.push(ind);
-                ind++;
-                return (
-                  <Tab key={index} label={tab.label} {...a11yProps(index)} />
-                );
-              }
-              indexes.push(-1);
-              return null;
-            })}
-          </Tabs>
-        </Box>
-
-        <CustomTabPanel value={value} index={indexes[0]}>
-          <GroupsData
-            isLoggedIn={isLoggedIn}
-            groups={groups}
-            mecze={mecze}
-            idzawodow={idzawodow}
-            onRefresh={refresh1}
-            typ={typ}
-            outGrups={outGrups}
-          />
-        </CustomTabPanel>
-
-        <CustomTabPanel value={value} index={indexes[1]}>
-          <Runda
-            meczeRund={meczeRund18}
-            idzawodow={idzawodow}
-            runda="1/4"
-            onRefresh={getMatches}
-            key={0}
-            typ={typ}
-            isLoggedIn={isLoggedIn}
-          />
-        </CustomTabPanel>
-
-        <CustomTabPanel value={value} index={indexes[2]}>
-          <Runda
-            meczeRund={meczeRund14}
-            idzawodow={idzawodow}
-            runda="1/2"
-            onRefresh={getMatches}
-            key={1}
-            typ={typ}
-            isLoggedIn={isLoggedIn}
-          />
-        </CustomTabPanel>
-
-        <CustomTabPanel value={value} index={indexes[3]}>
-          <Runda
-            meczeRund={meczeRund12}
-            idzawodow={idzawodow}
-            runda="final"
-            onRefresh={getMatches}
-            key={2}
-            typ={typ}
-            isLoggedIn={isLoggedIn}
-          />
-        </CustomTabPanel>
-
-        <CustomTabPanel value={value} index={indexes[4]}>
-          <Runda
-            meczeRund={meczeRundF}
-            idzawodow={idzawodow}
-            runda="wyniki"
-            key={3}
-            onRefresh={refresh2}
-            typ={typ}
-            isLoggedIn={isLoggedIn}
-          />
-        </CustomTabPanel>
-
-        <CustomTabPanel value={value} index={indexes[5]}>
-          <Wyniki
-            wyniki={wyniki}
-            idzawodow={idzawodow}
-            isLoggedIn={isLoggedIn}
-          />
-        </CustomTabPanel>
-      </Box>
-    </>
+            {tabData.map((tab, index) => (
+              <Tab
+                key={index}
+                mx={2}
+                my={isMobile ? 1 : 2}
+                py={2}
+                px={4}
+                borderRadius="lg"
+                bg={tabIndex === index ? activeTabBg : "transparent"}
+                color={tabIndex === index ? activeTabColor : tabColor}
+                fontWeight="semibold"
+                fontSize={isMobile ? "sm" : "md"}
+                transition="all 0.2s"
+                _hover={{
+                  bg: "blue.200",
+                }}
+                boxShadow={tabIndex === index ? "md" : "none"}
+                flexShrink={0}
+                width="80px"
+              >
+                {tab.label}
+              </Tab>
+            ))}
+          </TabList>
+          <TabPanels>
+            {tabData.map((tab, index) => (
+              <TabPanel key={index} p={0}>
+                {tab.content}
+              </TabPanel>
+            ))}
+          </TabPanels>
+        </Tabs>
+      </Container>
+    </ChakraProvider>
   );
 };
-
-function CustomTabPanel(props) {
-  const { children, value, index, ...other } = props;
-
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`simple-tabpanel-${index}`}
-      aria-labelledby={`simple-tab-${index}`}
-      {...other}
-    >
-      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
-    </div>
-  );
-}
-
-CustomTabPanel.propTypes = {
-  children: PropTypes.node,
-  index: PropTypes.number.isRequired,
-  value: PropTypes.number.isRequired,
-};
-
-function a11yProps(index) {
-  return {
-    id: `simple-tab-${index}`,
-    "aria-controls": `simple-tabpanel-${index}`,
-  };
-}
 
 export default OneOfEight;

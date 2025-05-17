@@ -1,28 +1,25 @@
-import * as React from "react";
-import Box from "@mui/material/Box";
-import Modal from "@mui/material/Modal";
-import Button from "@mui/material/Button";
-import { useState } from "react";
-import "./Modal.css";
+import React, { useState } from "react";
+import {
+  Box,
+  Modal,
+  ModalOverlay,
+  ModalContent,
+  ModalHeader,
+  ModalFooter,
+  ModalBody,
+  ModalCloseButton,
+  Button,
+  useDisclosure,
+  VStack,
+  HStack,
+  Text,
+} from "@chakra-ui/react";
 import axios from "../../api/axios";
 import { toast } from "react-toastify";
+import "./Modal.css";
 
-const style = {
-  position: "absolute",
-  top: "50%",
-  left: "50%",
-  transform: "translate(-50%, -50%)",
-  bgcolor: "background.paper",
-  border: "2px solid #000",
-  boxShadow: 24,
-  minWidth: 390,
-  maxWidth: 420,
-  pt: 3,
-  px: 3,
-  pb: 2,
-};
-
-export default function RemoveModal({
+const RemoveModal = ({
+  toRank,
   meczid,
   player1,
   player1id,
@@ -35,8 +32,11 @@ export default function RemoveModal({
   idmeczu,
   player1sets,
   player2sets,
-}) {
-  const [isOpen, setIsOpen] = useState(false);
+}) => {
+  console.log("runda",runda)
+  console.log("idzawodow",idzawodow)
+  console.log("idmeczu", idmeczu)
+  const {isOpen, onOpen, onClose } = useDisclosure();
   const [counterSet1, setCounterSet1] = useState(player1sets);
   const [counterSet2, setCounterSet2] = useState(player2sets);
   let buttonType = 1;
@@ -48,6 +48,9 @@ export default function RemoveModal({
   if (!player1id || !player2id) {
     buttonType = 0;
   }
+
+  if(toRank) buttonType = 3;
+
   const handleSetValueSet1 = (value) => {
     setCounterSet1(value);
   };
@@ -70,7 +73,7 @@ export default function RemoveModal({
     ];
 
     axios
-      .put(`saveRoundmatch`, data, {
+      .post(`match/freeMatch`, data, {
         headers: {
           "Content-Type": "application/json",
         },
@@ -86,7 +89,7 @@ export default function RemoveModal({
   };
   const handleLogCounters = () => {
     if (counterSet1 === player1sets && counterSet2 === player2sets) {
-      setIsOpen(false);
+      onClose();
     } else {
       const data = [
         meczid,
@@ -98,6 +101,7 @@ export default function RemoveModal({
         player2id,
         idzawodow,
         idmeczu,
+        toRank
       ];
 
       if (counterSet1 === 3 && counterSet2 === 3) {
@@ -105,7 +109,7 @@ export default function RemoveModal({
       } else {
         if (groupid) {
           axios
-            .post(`saveGroupmatch`, data, {
+            .post(`groups/save-match`, data, {
               headers: {
                 "Content-Type": "application/json",
               },
@@ -120,7 +124,7 @@ export default function RemoveModal({
             });
         } else {
           axios
-            .post(`saveRoundmatch`, data, {
+            .post(`match/saveMatch`, data, {
               headers: {
                 "Content-Type": "application/json",
               },
@@ -134,130 +138,92 @@ export default function RemoveModal({
               console.error("An error occurred:", error);
             });
         }
-        setIsOpen(false);
+        onClose();
         toast.success("Pomyślnie rozegrano mecz");
       }
     }
   };
 
-  const openModal = () => {
-    setIsOpen(true);
-  };
-  const handleClose = () => {
-    setIsOpen(false);
-  };
-
-  const ButtonModal = () => {
-    return (
-      <>
-        {buttonType === 0 ? (
-          <Button variant="outlined" color="success">
-            {" "}
-            Oczekiwanie
-          </Button>
-        ) : null}
-        {buttonType === 1 ? (
-          <Button variant="outlined" onClick={openModal}>
-            Dodaj <br />
-            wynik
-          </Button>
-        ) : null}
-        {buttonType === 2 ? (
-          <Button variant="outlined" color="error" onClick={handleClick}>
-            Przelicz
-          </Button>
-        ) : null}
-      </>
-    );
-  };
   return (
     <>
-      <div>
-        <ButtonModal />
-        <Modal
-          open={isOpen}
-          onClose={handleClose}
-          aria-labelledby="parent-modal-title"
-          aria-describedby="parent-modal-description"
-        >
-          <Box sx={{ ...style, justifyContent: "center" }}>
-            <div>
-              <table>
-                <tbody>
-                  <tr>
-                    <td width="200px">
-                      <b>{player1}</b>
-                    </td>
-                    <td className="forbutton" align="right">
-                      <button
-                        onClick={() => handleSetValueSet1(0)}
-                        className={counterSet1 === 0 ? "active" : ""}
-                      >
-                        0
-                      </button>
-                      <button
-                        onClick={() => handleSetValueSet1(1)}
-                        className={counterSet1 === 1 ? "active" : ""}
-                      >
-                        1
-                      </button>
-                      <button
-                        onClick={() => handleSetValueSet1(2)}
-                        className={counterSet1 === 2 ? "active" : ""}
-                      >
-                        2
-                      </button>
-                      <button
-                        onClick={() => handleSetValueSet1(3)}
-                        className={counterSet1 === 3 ? "active" : ""}
-                      >
-                        3
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td>
-                      <b>{player2}</b>
-                    </td>
-                    <td className="forbutton" align="right">
-                      <button
-                        onClick={() => handleSetValueSet2(0)}
-                        className={counterSet2 === 0 ? "active" : ""}
-                      >
-                        0
-                      </button>
-                      <button
-                        onClick={() => handleSetValueSet2(1)}
-                        className={counterSet2 === 1 ? "active" : ""}
-                      >
-                        1
-                      </button>
-                      <button
-                        onClick={() => handleSetValueSet2(2)}
-                        className={counterSet2 === 2 ? "active" : ""}
-                      >
-                        2
-                      </button>
-                      <button
-                        onClick={() => handleSetValueSet2(3)}
-                        className={counterSet2 === 3 ? "active" : ""}
-                      >
-                        3
-                      </button>
-                    </td>
-                  </tr>
-                  <tr>
-                    <td> </td>
-                  </tr>
-                </tbody>
-              </table>
-            </div>
-            <div className="container">
-              <button onClick={handleLogCounters}>Zapisz i zamknij</button>
-            </div>
-          </Box>
-        </Modal>
-      </div>
+      <Box>
+        {buttonType === 0 && (
+          <Button colorScheme="green" variant="outline" size='sm'>
+            Oczekiwanie
+          </Button>
+        )}
+        {buttonType === 1 && (
+          <Button colorScheme="blue" onClick={onOpen} size='sm'>
+            Dodaj wynik
+          </Button>
+        )}
+        {buttonType === 2 && (
+          <Button colorScheme="red" variant="outline" onClick={handleClick} size='sm'>
+            Przelicz
+          </Button>
+        )}
+
+         {//TODO usuwanie single meczu 
+         buttonType === 3 && (
+          <Button colorScheme="red" size='sm'>
+            Usuń mecz
+          </Button>
+        )}
+      </Box>
+      <Modal 
+  isOpen={isOpen} 
+  onClose={onClose}
+  isCentered // This centers the modal vertically
+  motionPreset="slideInBottom" // Optional: adds a nice animation
+>
+  <ModalOverlay />
+  <ModalContent
+    width="90%" // Adjust as needed
+    maxWidth="500px" // Adjust as needed
+  >
+    <ModalHeader>Dodaj wynik</ModalHeader>
+    <ModalCloseButton />
+    <ModalBody>
+            <VStack spacing={4} align="stretch">
+              <HStack justify="space-between">
+                <Text fontWeight="bold">{player1}</Text>
+                <HStack>
+                  {[0, 1, 2, 3].map((value) => (
+                    <Button
+                      key={value}
+                      onClick={() => handleSetValueSet1(value)}
+                      colorScheme={counterSet1 === value ? "teal" : "gray"}
+                    >
+                      {value}
+                    </Button>
+                  ))}
+                </HStack>
+              </HStack>
+              <HStack justify="space-between">
+                <Text fontWeight="bold">{player2}</Text>
+                <HStack>
+                  {[0, 1, 2, 3].map((value) => (
+                    <Button
+                      key={value}
+                      onClick={() => handleSetValueSet2(value)}
+                      colorScheme={counterSet2 === value ? "teal" : "gray"}
+                    >
+                      {value}
+                    </Button>
+                  ))}
+                </HStack>
+              </HStack>
+            </VStack>
+            </ModalBody>
+    <ModalFooter>
+      <Button colorScheme="blue" onClick={handleLogCounters}>
+        Zapisz i zamknij
+      </Button>
+    </ModalFooter>
+  </ModalContent>
+</Modal>
     </>
   );
-}
+};
+
+export default RemoveModal;

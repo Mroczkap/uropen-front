@@ -1,25 +1,23 @@
 /* Styling for the navigation bar */
 .navigation {
-  height: 60px;
+  height: 75px;
   width: 100%;
   display: flex;
   align-items: center;
   justify-content: space-between; /* Distributes items across the width */
   position: relative;
-  padding: 0.5rem 0rem;
   background-color: #415160;
   color: #fff;
   box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-  z-index: 2; /* Ensure the navigation is above the content */
+  z-index: 1; /* Ensure the navigation is above the content */
 }
 
 /* Styling for navigation items */
 .navigation-menu {
-  width: 60%;
-  text-align: center;
-  align-items: center; /* Center vertically */
-  justify-content: center; /* Center horizontally */
-   /* Adjust padding as needed */
+  flex-grow: 2; /* Allows the navigation menu to take up available space */
+  display: flex;
+  justify-content: center; /* Centers the menu items horizontally */
+  align-items: center; /* Centers the menu items vertically */
 }
 
 .navigation-menu ul {
@@ -85,7 +83,7 @@
   align-items: center;
   margin: 0; /* Remove margin to move logo to the left edge */
   padding: 0.5rem 1rem; /* Add padding for spacing */
-  width: 20%
+  width: 70px;
 }
 
 .logo-image {
@@ -95,13 +93,16 @@
   margin-left: 0.5rem;
 }
 
-.logo-container button {
-  margin-right: 2rem;
-  margin-left: 2rem;
-}
 .logo-container {
   display: flex;
   align-items: center;
+}
+
+.logo-container button {
+  margin-right: 2rem;
+  margin-left: 2rem;
+  height: 40px;
+  width:  100px;
 }
 
 /* Media queries for responsive design */
@@ -122,39 +123,39 @@
     z-index: 1; /* Place the expanded menu above the navigation bar */
   }
 
-.navigation-menu li {
-  text-align: center;
-  margin: 0;
-}
+  .navigation-menu li {
+    text-align: center;
+    margin: 0;
+  }
 
-.navigation-menu li a {
-  color: #fff;
-  width: 100%;
-  padding: 1.5rem 0;
-  transition: color 0.3s ease;
-}
+  .navigation-menu li a {
+    color: #fff;
+    width: 100%;
+    padding: 1.5rem 0;
+    transition: color 0.3s ease;
+  }
 
-.navigation-menu li a:hover {
-  color: #4d4dff;
-}
+  .navigation-menu li a:hover {
+    color: #4d4dff;
+  }
 
-.navigation-menu li:hover {
-  background-color: #e0e0e0;
-}
+  .navigation-menu li:hover {
+    background-color: #e0e0e0;
+  }
 
-.navigation-menu.expanded ul {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
+  .navigation-menu.expanded ul {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 
-.logo {
-  margin-left: 0; /* Center the logo in mobile view */
-  justify-content: center;
-  width: 300px;
-}
+  .logo {
+    margin-left: 0; /* Center the logo in mobile view */
+    justify-content: center;
+    width: 100px;
+  }
 
-.logo img {
-  margin-right: 0; /* Remove margin in mobile view */
-}
+  .logo img {
+    margin-right: 0; /* Remove margin in mobile view */
+  }
 }
