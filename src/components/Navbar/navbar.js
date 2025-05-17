@@ -15,7 +15,7 @@ import { HamburgerIcon, CloseIcon } from "@chakra-ui/icons";
 import { Link as RouterLink, useNavigate, useLocation } from "react-router-dom";
 import useLogout from "../../hooks/useLogout";
 import useAuth from "../../hooks/useAuth";
-
+import logour from "../../assets/uropen2.jpg";
 const theme = extendTheme({
   fonts: {
     heading: "'Arial', sans-serif",
@@ -104,6 +104,12 @@ export default function Navbar() {
     <ChakraProvider theme={theme}>
       <Box bg="brand.500" px={4}>
         <Flex h={16} alignItems={"center"} justifyContent={"space-between"}>
+           <img
+  src={logour}
+  alt="Logo"
+  className="logo-image"
+  style={{ height: "50px", width: "auto" }}
+/>
           <IconButton
             size={"md"}
             icon={isOpen ? <CloseIcon /> : <HamburgerIcon />}
